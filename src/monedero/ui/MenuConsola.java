@@ -3,6 +3,7 @@ package monedero.ui;
 import monedero.modelo.Categoria;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
+import monedero.modelo.Notificacion;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.Transaccion;
 import monedero.servicio.SistemaMonedero;
@@ -51,6 +52,8 @@ public class MenuConsola {
         System.out.println(" 8. Ver historial de un monedero");
         System.out.println(" 9. Verificar integridad");
         System.out.println("10. Avanzar dias (reloj simulado)");
+        System.out.println("11. Revertir ultima transaccion de un cliente");
+        System.out.println("12. Ver notificaciones de un cliente");
         System.out.println(" 0. Salir");
     }
 
@@ -100,6 +103,8 @@ public class MenuConsola {
                 sistema.getReloj().avanzarDias(leerEntero("Dias: "));
                 System.out.println("  Fecha actual: " + sistema.getReloj().ahora());
             }
+            case 11 -> revertir();
+            case 12 -> verNotificaciones();
             case 0 -> System.out.println("Hasta luego");
             default -> System.out.println("  Opcion no valida");
         }
@@ -107,11 +112,41 @@ public class MenuConsola {
 
     private void listar() {
         for (Cliente cliente : sistema.getClientes()) {
-            System.out.println(cliente + "  saldo total $" + cliente.saldoTotal());
+            int noLeidas = sistema.getNotificador().noLeidas(cliente.getId());
+            System.out.println(cliente + "  saldo total $" + cliente.saldoTotal()
+                    + (noLeidas > 0 ? "  [" + noLeidas + " notificaciones nuevas]" : ""));
             for (Monedero monedero : cliente.getMonederos()) {
                 System.out.println("    " + monedero);
             }
         }
+    }
+
+    private void revertir() {
+        String clienteId = leerTexto("Id cliente: ");
+        Transaccion proxima = sistema.proximaReversible(clienteId);
+        if (proxima == null) {
+            System.out.println("  No tiene transacciones para revertir");
+            return;
+        }
+        System.out.println("  Se revertiria: " + proxima);
+        if (leerTexto("  Confirmar (s/n): ").equalsIgnoreCase("s")) {
+            Transaccion t = sistema.revertirUltima(clienteId);
+            System.out.println("  Revertida " + t.getId() + ". " + sistema.buscarCliente(clienteId));
+        }
+    }
+
+    private void verNotificaciones() {
+        String clienteId = leerTexto("Id cliente: ");
+        sistema.buscarCliente(clienteId);
+        boolean alguna = false;
+        for (Notificacion n : sistema.getNotificador().buzon(clienteId)) {
+            System.out.println("  " + n);
+            alguna = true;
+        }
+        if (!alguna) {
+            System.out.println("  Sin notificaciones");
+        }
+        sistema.getNotificador().marcarLeidas(clienteId);
     }
 
     private void informar(Transaccion t) {

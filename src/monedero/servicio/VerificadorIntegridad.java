@@ -18,6 +18,9 @@ import monedero.modelo.Transaccion;
  * Por cada cliente:
  *   5. puntos guardados == suma recursiva de los puntos de sus transacciones
  *
+ * Las transacciones revertidas siguen en el historial pero cuentan 0 en
+ * saldo y puntos (efectoVigenteSobre / puntosVigentes).
+ *
  * Costo: O(n) por monedero (cada transaccion se visita una vez por chequeo)
  * y profundidad de recursion O(log n), asi que no hay StackOverflow aunque
  * el historial sea grande. Recorrer la lista nodo a nodo recursivamente
@@ -133,7 +136,7 @@ public class VerificadorIntegridad {
             return new Tramo(0, 0);
         }
         if (ini == fin) {
-            long efecto = arr[ini].efectoSobre(monederoId);
+            long efecto = arr[ini].efectoVigenteSobre(monederoId);
             return new Tramo(efecto, Math.min(0, efecto));
         }
         int medio = (ini + fin) / 2;
@@ -172,7 +175,7 @@ public class VerificadorIntegridad {
             Transaccion t = arr[ini];
             boolean esDeEsteMonedero = monederoId.equals(
                     t.getTipo().requiereOrigen() ? t.getOrigenId() : t.getDestinoId());
-            return esDeEsteMonedero ? t.getPuntos() : 0;
+            return esDeEsteMonedero ? t.puntosVigentes() : 0;
         }
         int medio = (ini + fin) / 2;
         return sumarPuntos(arr, monederoId, ini, medio)

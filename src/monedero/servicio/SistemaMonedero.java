@@ -10,6 +10,8 @@ import monedero.excepciones.SaldoInsuficienteException;
 import monedero.modelo.Categoria;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
+import monedero.modelo.Rango;
+import monedero.modelo.TipoNotificacion;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Transaccion;
@@ -17,7 +19,8 @@ import monedero.modelo.Transaccion;
 /**
  * Fachada del monedero: la interfaz (consola o grafica) solo habla con esta
  * clase. Funcionalidades basicas: depositos, retiros, transferencias,
- * saldo e historial, mas el calculo de puntos.
+ * saldo e historial, mas el calculo de puntos, la reversion (pila por
+ * cliente) y las notificaciones (lista circular por cliente).
  *
  * Estructuras:
  *   clientes, monederos  Mapa (hash)   buscar por id O(1) promedio
@@ -26,9 +29,13 @@ import monedero.modelo.Transaccion;
  */
 public class SistemaMonedero {
 
+    /** Por debajo de este saldo, despues de un retiro o envio, se avisa. */
+    public static final long UMBRAL_SALDO_BAJO = 1_000;
+
     private final Mapa<String, Cliente> clientes = new MapaJava<>();
     private final Mapa<String, Monedero> monederos = new MapaJava<>();
     private final Coleccion<Transaccion> transacciones = new ListaEnlazada<>();
+    private final Notificador notificador = new Notificador();
     private final Reloj reloj;
 
     private int consecutivoCliente = 0;
@@ -101,7 +108,9 @@ public class SistemaMonedero {
         validarSaldo(origen, monto + comision);
         Transaccion t = crearTransaccion(TipoTransaccion.RETIRO, monto, origen.getId(), null, categoria, descripcion);
         origen.aplicar(t);
-        return registrar(t, origen.getClienteId());
+        registrar(t, origen.getClienteId());
+        avisarSiSaldoBajo(origen);
+        return t;
     }
 
     /**
@@ -126,7 +135,74 @@ public class SistemaMonedero {
         Transaccion t = crearTransaccion(tipo, monto, origen.getId(), destino.getId(), categoria, descripcion);
         origen.aplicar(t);
         destino.aplicar(t);
-        return registrar(t, origen.getClienteId());
+        registrar(t, origen.getClienteId());
+        avisarSiSaldoBajo(origen);
+        if (tipo == TipoTransaccion.TRANSFERENCIA) {
+            notificador.notificar(destino.getClienteId(), TipoNotificacion.TRANSFERENCIA_RECIBIDA,
+                    "Recibiste $" + monto + " de " + buscarCliente(origen.getClienteId()).getNombre()
+                            + " en " + destino.getNombre(), reloj.ahora());
+        }
+        return t;
+    }
+
+    // ------------------------------------------------------------------ reversion
+
+    /**
+     * Revierte la transaccion mas reciente que inicio el cliente (cima de su
+     * pila) y recalcula sus puntos. La transaccion no se borra: queda en el
+     * historial marcada como REVERTIDA y deja de contar en saldos y puntos.
+     *
+     * Se rechaza si el monedero que recibio la plata ya la gasto en algun
+     * momento posterior (ver Monedero.saldoMinimoDesde): quitarla dejaria un
+     * saldo negativo en la historia.
+     *
+     * Costo: O(1) la pila + O(n) revisar el historial del destino.
+     */
+    public Transaccion revertirUltima(String clienteId) {
+        Cliente cliente = buscarCliente(clienteId);
+        if (!cliente.tieneReversibles()) {
+            throw new OperacionInvalidaException(clienteId + " no tiene transacciones para revertir");
+        }
+        Transaccion t = cliente.ultimaReversible();
+
+        Monedero origen = t.getOrigenId() == null ? null : buscarMonedero(t.getOrigenId());
+        Monedero destino = t.getDestinoId() == null ? null : buscarMonedero(t.getDestinoId());
+        if (destino != null && destino.saldoMinimoDesde(t) < t.getMonto()) {
+            throw new OperacionInvalidaException("No se puede revertir " + t.getId() + ": los $" + t.getMonto()
+                    + " que recibio " + destino.getId() + " ya se usaron despues");
+        }
+        if (cliente.getPuntos() < t.getPuntos()) {
+            throw new OperacionInvalidaException("No se puede revertir " + t.getId() + ": sus " + t.getPuntos()
+                    + " puntos ya se canjearon");
+        }
+
+        Rango antes = cliente.getRango();
+        if (destino != null) {
+            destino.revertir(t);
+        }
+        if (origen != null) {
+            origen.revertir(t);
+        }
+        t.marcarRevertida(reloj.ahora());
+        cliente.sacarReversible();
+        cliente.restarPuntos(t.getPuntos());
+
+        notificador.notificar(clienteId, TipoNotificacion.REVERSION,
+                "Se revirtio " + t.getId() + " (" + t.getTipo() + " $" + t.getMonto() + "), -" + t.getPuntos() + " pts",
+                reloj.ahora());
+        if (t.getTipo() == TipoTransaccion.TRANSFERENCIA) {
+            notificador.notificar(destino.getClienteId(), TipoNotificacion.REVERSION,
+                    "Se revirtio la transferencia " + t.getId() + " de $" + t.getMonto() + " que recibiste",
+                    reloj.ahora());
+        }
+        avisarSiCambioRango(cliente, antes);
+        return t;
+    }
+
+    /** La que se revertiria, o null si no hay ninguna. */
+    public Transaccion proximaReversible(String clienteId) {
+        Cliente cliente = buscarCliente(clienteId);
+        return cliente.tieneReversibles() ? cliente.ultimaReversible() : null;
     }
 
     // ------------------------------------------------------------------ consultas
@@ -153,6 +229,10 @@ public class SistemaMonedero {
 
     public int cantidadTransacciones() {
         return transacciones.tamanio();
+    }
+
+    public Notificador getNotificador() {
+        return notificador;
     }
 
     public Reloj getReloj() {
@@ -190,9 +270,30 @@ public class SistemaMonedero {
     }
 
     private Transaccion registrar(Transaccion t, String clienteId) {
+        Cliente cliente = buscarCliente(clienteId);
+        Rango antes = cliente.getRango();
         transacciones.agregar(t);
-        buscarCliente(clienteId).sumarPuntos(t.getPuntos());
+        cliente.registrarReversible(t);
+        cliente.sumarPuntos(t.getPuntos());
+        avisarSiCambioRango(cliente, antes);
         return t;
+    }
+
+    private void avisarSiSaldoBajo(Monedero monedero) {
+        if (monedero.getSaldo() < UMBRAL_SALDO_BAJO) {
+            notificador.notificar(monedero.getClienteId(), TipoNotificacion.SALDO_BAJO,
+                    "Saldo bajo en " + monedero.getNombre() + " (" + monedero.getId() + "): $" + monedero.getSaldo(),
+                    reloj.ahora());
+        }
+    }
+
+    private void avisarSiCambioRango(Cliente cliente, Rango antes) {
+        Rango ahora = cliente.getRango();
+        if (ahora != antes) {
+            notificador.notificar(cliente.getId(), TipoNotificacion.CAMBIO_RANGO,
+                    (ahora.compareTo(antes) > 0 ? "Subiste" : "Bajaste") + " de " + antes + " a " + ahora
+                            + " (" + cliente.getPuntos() + " pts)", reloj.ahora());
+        }
     }
 
     private static void validarMonto(long monto) {

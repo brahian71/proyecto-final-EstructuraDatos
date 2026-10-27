@@ -48,12 +48,57 @@ public class Monedero {
         if (!transaccion.involucra(id)) {
             throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no involucra al monedero " + id);
         }
+        if (transaccion.isRevertida()) {
+            throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " ya esta revertida");
+        }
         long nuevoSaldo = saldo + transaccion.efectoSobre(id);
         if (nuevoSaldo < 0) {
             throw new IllegalStateException("El saldo de " + id + " quedaria negativo: " + nuevoSaldo);
         }
         saldo = nuevoSaldo;
         historial.agregar(transaccion);
+    }
+
+    /**
+     * Deshace el efecto de una transaccion que ya esta en el historial. No la
+     * saca del historial: el servicio la marca como revertida despues de
+     * ajustar los monederos involucrados.
+     */
+    public void revertir(Transaccion transaccion) {
+        if (!transaccion.involucra(id)) {
+            throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no involucra al monedero " + id);
+        }
+        if (transaccion.isRevertida()) {
+            throw new IllegalStateException("La transaccion " + transaccion.getId() + " ya fue revertida");
+        }
+        long nuevoSaldo = saldo - transaccion.efectoSobre(id);
+        if (nuevoSaldo < 0) {
+            throw new IllegalStateException("El saldo de " + id + " quedaria negativo: " + nuevoSaldo);
+        }
+        saldo = nuevoSaldo;
+    }
+
+    /**
+     * Menor saldo que tuvo el monedero desde la transaccion indicada
+     * (incluida) hasta hoy. Si se quita un ingreso de X, todos esos saldos
+     * bajan X, asi que solo se puede revertir si este minimo es >= X: si no,
+     * esa plata ya se gasto en algun momento. O(n).
+     */
+    public long saldoMinimoDesde(Transaccion transaccion) {
+        long corriente = 0;
+        long minimo = Long.MAX_VALUE;
+        boolean encontrada = false;
+        for (Transaccion t : historial) {
+            corriente += t.efectoVigenteSobre(id);
+            encontrada |= t.equals(transaccion);
+            if (encontrada) {
+                minimo = Math.min(minimo, corriente);
+            }
+        }
+        if (!encontrada) {
+            throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no esta en el historial de " + id);
+        }
+        return minimo;
     }
 
     /** Solo lectura: quien recorre el historial no puede alterarlo. */

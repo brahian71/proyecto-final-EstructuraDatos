@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Registro inmutable de una operacion. Una transferencia es UN solo objeto
- * que queda en el historial de los dos monederos; efectoSobre() dice cuanto
+ * Registro de una operacion. Todo es inmutable menos la marca de reversion:
+ * una transaccion revertida NO se borra del historial (queda como evidencia),
+ * solo deja de tener efecto sobre saldos y puntos.
+ *
+ * Una transferencia es UN solo objeto que queda en el historial de los dos monederos; efectoSobre() dice cuanto
  * cambia el saldo de cada uno.
  *
  * Dinero en long (unidades enteras): con double los redondeos harian fallar
@@ -26,6 +29,7 @@ public class Transaccion {
     private final LocalDateTime fecha;
     private final String descripcion;
     private final int puntos;
+    private LocalDateTime fechaReversion;
 
     public Transaccion(String id, TipoTransaccion tipo, long monto, long comision,
                        String origenId, String destinoId, Categoria categoria,
@@ -67,8 +71,10 @@ public class Transaccion {
     }
 
     /**
-     * Cambio de saldo que produce esta transaccion en el monedero indicado:
+     * Cambio de saldo que produjo esta transaccion en el monedero indicado:
      * el origen pierde monto + comision, el destino gana monto, otro 0.
+     * Es el efecto original aunque este revertida (lo usa la reversion para
+     * deshacerlo); para el efecto actual ver efectoVigenteSobre.
      */
     public long efectoSobre(String monederoId) {
         if (monederoId == null) {
@@ -81,6 +87,31 @@ public class Transaccion {
             return monto;
         }
         return 0;
+    }
+
+    /** Efecto que cuenta hoy: 0 si fue revertida. */
+    public long efectoVigenteSobre(String monederoId) {
+        return isRevertida() ? 0 : efectoSobre(monederoId);
+    }
+
+    /** Puntos que cuenta hoy: 0 si fue revertida. */
+    public int puntosVigentes() {
+        return isRevertida() ? 0 : puntos;
+    }
+
+    public void marcarRevertida(LocalDateTime fecha) {
+        if (isRevertida()) {
+            throw new IllegalStateException("La transaccion " + id + " ya fue revertida");
+        }
+        this.fechaReversion = Objects.requireNonNull(fecha, "La fecha no puede ser nula");
+    }
+
+    public boolean isRevertida() {
+        return fechaReversion != null;
+    }
+
+    public LocalDateTime getFechaReversion() {
+        return fechaReversion;
     }
 
     public boolean involucra(String monederoId) {
@@ -148,6 +179,7 @@ public class Transaccion {
         return id + " " + tipo + " $" + monto
                 + (comision > 0 ? " (+com $" + comision + ")" : "")
                 + " " + (origenId == null ? "-" : origenId) + " -> " + (destinoId == null ? "-" : destinoId)
-                + " [" + categoria + "] +" + puntos + "pts " + fecha.toLocalDate();
+                + " [" + categoria + "] +" + puntos + "pts " + fecha.toLocalDate()
+                + (isRevertida() ? "  [REVERTIDA " + fechaReversion.toLocalDate() + "]" : "");
     }
 }

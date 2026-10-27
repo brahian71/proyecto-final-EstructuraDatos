@@ -2,6 +2,8 @@ package monedero.modelo;
 
 import monedero.estructuras.Coleccion;
 import monedero.estructuras.ListaEnlazada;
+import monedero.estructuras.Pila;
+import monedero.estructuras.PilaEnlazada;
 
 /**
  * Cliente del sistema. Tiene uno o varios monederos y un total de puntos.
@@ -9,12 +11,17 @@ import monedero.estructuras.ListaEnlazada;
  * Los puntos viven aqui por ahora; en la fase 3 el arbol de puntos los
  * indexa para consultas ordenadas, pero la fuente de verdad sigue siendo
  * la suma de puntos de sus transacciones (eso lo verifica la integridad).
+ *
+ * reversibles es una PILA con las transacciones que inicio el cliente: solo
+ * se puede deshacer la mas reciente (LIFO), igual que Ctrl+Z. Asi nunca se
+ * revierte algo de lo que dependen operaciones suyas posteriores.
  */
 public class Cliente {
 
     private final String id;
     private final String nombre;
     private final Coleccion<Monedero> monederos = new ListaEnlazada<>();
+    private final Pila<Transaccion> reversibles = new PilaEnlazada<>();
     private int puntos;
 
     public Cliente(String id, String nombre) {
@@ -42,7 +49,7 @@ public class Cliente {
         puntos += cantidad;
     }
 
-    /** Lo usaran el canje y la reversion (fase 2). */
+    /** Lo usan la reversion y el canje (fase 3). */
     public void restarPuntos(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad no puede ser negativa: " + cantidad);
@@ -51,6 +58,23 @@ public class Cliente {
             throw new IllegalStateException("Puntos insuficientes: tiene " + puntos + ", se piden " + cantidad);
         }
         puntos -= cantidad;
+    }
+
+    public void registrarReversible(Transaccion transaccion) {
+        reversibles.apilar(transaccion);
+    }
+
+    /** La proxima que se revertiria. @throws java.util.NoSuchElementException si no hay */
+    public Transaccion ultimaReversible() {
+        return reversibles.cima();
+    }
+
+    public Transaccion sacarReversible() {
+        return reversibles.desapilar();
+    }
+
+    public boolean tieneReversibles() {
+        return !reversibles.estaVacia();
     }
 
     public Rango getRango() {

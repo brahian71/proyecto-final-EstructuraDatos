@@ -32,6 +32,24 @@ Sirven de base para el informe tecnico.
 10. **Estructuras detras de interfaces** (`Coleccion`, `Mapa`, ...). Las que
     todavia no se han visto en clase se usan con un adaptador temporal.
 11. **Sin persistencia**: los datos de ejemplo se cargan al iniciar.
+12. **Una pila de reversibles por cliente** (no una global). Guarda las
+    transacciones que inicio el cliente; solo se revierte la cima (LIFO), asi
+    nunca se deshace algo de lo que dependen operaciones suyas posteriores. Con
+    una pila global, un cliente no podria revertir porque otro opero despues.
+13. **Revertir no borra**: la transaccion queda en el historial marcada como
+    REVERTIDA y cuenta 0 en saldo y puntos. Se conserva la evidencia y la
+    integridad sigue cuadrando.
+14. **No se revierte plata ya gastada**: si el monedero que recibio el dinero
+    lo uso despues (el saldo minimo desde esa transaccion es menor que el
+    monto), la reversion se rechaza. Si no, el historial quedaria con un saldo
+    negativo en algun momento.
+15. **Al revertir se descuentan los mismos puntos que se dieron** (guardados en
+    la transaccion) y se avisa si el cliente cambia de rango.
+16. **Notificaciones en lista circular de capacidad 10 por cliente**. Cuando
+    se llena, la nueva sobrescribe la mas vieja reutilizando el nodo (O(1), sin
+    crecer). Se avisa: saldo bajo (< 1.000 despues de un retiro o envio),
+    transferencia recibida, cambio de rango y reversion. No se avisa cada
+    transaccion para no llenar el buzon de ruido.
 
 ## Pendientes (preguntas al profesor)
 
@@ -43,5 +61,6 @@ Sirven de base para el informe tecnico.
 - Que reportes se esperan de los grafos.
 - Que debe verificar la integridad, ademas de lo listado arriba.
 - Que guarda el BST de puntos: clientes por puntos, o historial de puntos.
+- Umbral de saldo bajo (hoy 1.000) y cuantas notificaciones guardar (hoy 10).
 - Unidad de moneda: con pesos reales, 1 punto por cada 100 deja a todos en
   Platino muy rapido.
