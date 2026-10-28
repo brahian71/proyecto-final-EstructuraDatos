@@ -12,7 +12,9 @@ public enum TipoTransaccion {
     DEPOSITO(1),
     RETIRO(2),
     TRANSFERENCIA(3),
-    MOVIMIENTO_INTERNO(0);
+    MOVIMIENTO_INTERNO(0),
+    /** Saldo regalado por canjear puntos. Solo destino, sin puntos, no se revierte. */
+    BONO(0);
 
     private final int puntosPorCada100;
 
@@ -24,9 +26,9 @@ public enum TipoTransaccion {
         return puntosPorCada100;
     }
 
-    /** Depositos solo tienen destino, retiros solo origen, el resto ambos. */
+    /** Depositos y bonos solo tienen destino, retiros solo origen, el resto ambos. */
     public boolean requiereOrigen() {
-        return this != DEPOSITO;
+        return this != DEPOSITO && this != BONO;
     }
 
     public boolean requiereDestino() {

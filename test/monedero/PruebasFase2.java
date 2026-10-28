@@ -14,6 +14,7 @@ import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoNotificacion;
 import monedero.modelo.Transaccion;
 import monedero.servicio.Notificador;
+import monedero.servicio.PoliticaComision;
 import monedero.servicio.Reloj;
 import monedero.servicio.SistemaMonedero;
 import monedero.servicio.VerificadorIntegridad;
@@ -297,7 +298,7 @@ public class PruebasFase2 {
     // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
-        return new SistemaMonedero(new Reloj(INICIO));
+        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION);
     }
 
     private static String principal(Cliente cliente) {

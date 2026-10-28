@@ -1,9 +1,8 @@
 package monedero.estructuras;
 
 /**
- * Diccionario clave -> valor. Los servicios solo conocen esta interfaz, asi
- * la implementacion temporal (MapaJava) se cambia por la TablaHash propia
- * sin tocar el resto del proyecto.
+ * Diccionario clave -> valor. Los servicios solo conocen esta interfaz; la
+ * implementacion es TablaHash (propia).
  */
 public interface Mapa<K, V> {
 

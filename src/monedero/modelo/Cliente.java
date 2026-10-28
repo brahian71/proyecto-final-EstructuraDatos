@@ -5,12 +5,20 @@ import monedero.estructuras.ListaEnlazada;
 import monedero.estructuras.Pila;
 import monedero.estructuras.PilaEnlazada;
 
+import java.time.LocalDateTime;
+
 /**
- * Cliente del sistema. Tiene uno o varios monederos y un total de puntos.
+ * Cliente del sistema. Tiene uno o varios monederos y dos cuentas de puntos:
+ *   puntos (acumulados)  todo lo ganado menos lo revertido. Define el RANGO.
+ *   disponibles          acumulados menos lo canjeado. Es lo que se gasta.
+ * Asi canjear no hace bajar de rango (no se castiga usar los puntos), pero
+ * revertir una transaccion si, porque esos puntos nunca debieron existir.
  *
- * Los puntos viven aqui por ahora; en la fase 3 el arbol de puntos los
- * indexa para consultas ordenadas, pero la fuente de verdad sigue siendo
- * la suma de puntos de sus transacciones (eso lo verifica la integridad).
+ * historialPuntos (lista enlazada, en orden de fecha) registra cada
+ * movimiento; la suma del historial debe dar los disponibles.
+ *
+ * Los puntos solo deben cambiar por medio de RegistroPuntos, que mantiene el
+ * arbol AVL de clientes ordenado por puntos.
  *
  * reversibles es una PILA con las transacciones que inicio el cliente: solo
  * se puede deshacer la mas reciente (LIFO), igual que Ctrl+Z. Asi nunca se
@@ -22,7 +30,10 @@ public class Cliente {
     private final String nombre;
     private final Coleccion<Monedero> monederos = new ListaEnlazada<>();
     private final Pila<Transaccion> reversibles = new PilaEnlazada<>();
+    private final Coleccion<MovimientoPuntos> historialPuntos = new ListaEnlazada<>();
+    private final Coleccion<BeneficioActivo> beneficios = new ListaEnlazada<>();
     private int puntos;
+    private int puntosCanjeados;
 
     public Cliente(String id, String nombre) {
         if (id == null || id.isBlank()) {
@@ -42,22 +53,61 @@ public class Cliente {
         monederos.agregar(monedero);
     }
 
-    public void sumarPuntos(int cantidad) {
+    public void ganarPuntos(int cantidad, LocalDateTime fecha, String detalle) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad no puede ser negativa: " + cantidad);
+        }
+        if (cantidad == 0) {
+            return;
         }
         puntos += cantidad;
+        historialPuntos.agregar(new MovimientoPuntos(MovimientoPuntos.Tipo.GANADOS, cantidad, fecha, detalle,
+                getPuntosDisponibles()));
     }
 
-    /** Lo usan la reversion y el canje (fase 3). */
-    public void restarPuntos(int cantidad) {
+    /** Reversion: quita puntos acumulados (y por tanto disponibles). */
+    public void perderPuntos(int cantidad, LocalDateTime fecha, String detalle) {
+        validarDisponibles(cantidad);
+        if (cantidad == 0) {
+            return;
+        }
+        puntos -= cantidad;
+        historialPuntos.agregar(new MovimientoPuntos(MovimientoPuntos.Tipo.REVERTIDOS, -cantidad, fecha, detalle,
+                getPuntosDisponibles()));
+    }
+
+    /**
+     * Gasta los puntos del beneficio y, si dura en el tiempo, lo deja activo.
+     * No cambia los puntos acumulados (ni el rango).
+     */
+    public void canjear(Beneficio beneficio, LocalDateTime fecha) {
+        validarDisponibles(beneficio.getCostoPuntos());
+        puntosCanjeados += beneficio.getCostoPuntos();
+        historialPuntos.agregar(new MovimientoPuntos(MovimientoPuntos.Tipo.CANJEADOS, -beneficio.getCostoPuntos(),
+                fecha, beneficio.name(), getPuntosDisponibles()));
+        if (beneficio.getDuracionDias() > 0) {
+            beneficios.agregar(new BeneficioActivo(beneficio, fecha.plusDays(beneficio.getDuracionDias())));
+        }
+    }
+
+    /** Recorre los beneficios canjeados: O(b), b es pequeno. */
+    public boolean tieneBeneficio(Beneficio beneficio, LocalDateTime fecha) {
+        for (BeneficioActivo activo : beneficios) {
+            if (activo.getBeneficio() == beneficio && activo.vigenteEn(fecha)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void validarDisponibles(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La cantidad no puede ser negativa: " + cantidad);
         }
-        if (cantidad > puntos) {
-            throw new IllegalStateException("Puntos insuficientes: tiene " + puntos + ", se piden " + cantidad);
+        if (cantidad > getPuntosDisponibles()) {
+            throw new IllegalStateException("Puntos insuficientes: tiene " + getPuntosDisponibles()
+                    + " disponibles, se piden " + cantidad);
         }
-        puntos -= cantidad;
     }
 
     public void registrarReversible(Transaccion transaccion) {
@@ -106,8 +156,29 @@ public class Cliente {
         return nombre;
     }
 
+    /** Puntos acumulados: los que definen el rango. */
     public int getPuntos() {
         return puntos;
+    }
+
+    public int getPuntosDisponibles() {
+        return puntos - puntosCanjeados;
+    }
+
+    public int getPuntosCanjeados() {
+        return puntosCanjeados;
+    }
+
+    public Iterable<MovimientoPuntos> getHistorialPuntos() {
+        return historialPuntos;
+    }
+
+    public int cantidadMovimientosPuntos() {
+        return historialPuntos.tamanio();
+    }
+
+    public Iterable<BeneficioActivo> getBeneficios() {
+        return beneficios;
     }
 
     @Override
@@ -128,6 +199,7 @@ public class Cliente {
 
     @Override
     public String toString() {
-        return id + " " + nombre + " - " + puntos + " pts (" + getRango() + ")";
+        return id + " " + nombre + " - " + puntos + " pts (" + getRango() + ")"
+                + (puntosCanjeados > 0 ? ", " + getPuntosDisponibles() + " disponibles" : "");
     }
 }

@@ -2,6 +2,7 @@ package monedero.servicio;
 
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
+import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Transaccion;
 
 /**
@@ -16,7 +17,12 @@ import monedero.modelo.Transaccion;
  *   4. el saldo nunca fue negativo en ningun punto de la historia
  *      (minimo de las sumas parciales, tambien por divide y venceras)
  * Por cada cliente:
- *   5. puntos guardados == suma recursiva de los puntos de sus transacciones
+ *   5. puntos acumulados == suma recursiva de los puntos de sus transacciones
+ *   6. puntos disponibles == suma recursiva de su historial de puntos, y >= 0
+ *   7. esta en el arbol de puntos con su clave actual
+ * Arbol AVL de puntos:
+ *   8. orden, alturas y balance correctos (ArbolBST.esValido, recursivo) y
+ *      tiene exactamente un nodo por cliente
  *
  * Las transacciones revertidas siguen en el historial pero cuentan 0 en
  * saldo y puntos (efectoVigenteSobre / puntosVigentes).
@@ -39,10 +45,23 @@ public class VerificadorIntegridad {
         for (Monedero monedero : sistema.getMonederos()) {
             verificarMonedero(monedero, resultado);
         }
+        int clientes = 0;
         for (Cliente cliente : sistema.getClientes()) {
             verificarPuntosCliente(cliente, resultado);
+            clientes++;
         }
+        verificarArbolPuntos(clientes, resultado);
         return resultado;
+    }
+
+    private void verificarArbolPuntos(int clientes, ResultadoIntegridad resultado) {
+        RegistroPuntos registro = sistema.getRegistroPuntos();
+        if (!registro.arbolValido()) {
+            resultado.agregarError("Arbol de puntos: el orden, las alturas o el balance AVL no son correctos");
+        }
+        if (registro.tamanio() != clientes) {
+            resultado.agregarError("Arbol de puntos: tiene " + registro.tamanio() + " nodos y hay " + clientes + " clientes");
+        }
     }
 
     // ------------------------------------------------------------------ monedero
@@ -158,6 +177,35 @@ public class VerificadorIntegridad {
             resultado.agregarError(cliente.getId() + ": tiene " + cliente.getPuntos()
                     + " puntos pero sus transacciones suman " + total);
         }
+
+        MovimientoPuntos[] movimientos = new MovimientoPuntos[cliente.cantidadMovimientosPuntos()];
+        int i = 0;
+        for (MovimientoPuntos m : cliente.getHistorialPuntos()) {
+            movimientos[i++] = m;
+        }
+        int sumaHistorial = sumarMovimientos(movimientos, 0, movimientos.length - 1);
+        if (sumaHistorial != cliente.getPuntosDisponibles()) {
+            resultado.agregarError(cliente.getId() + ": tiene " + cliente.getPuntosDisponibles()
+                    + " puntos disponibles pero su historial de puntos suma " + sumaHistorial);
+        }
+        if (cliente.getPuntosDisponibles() < 0) {
+            resultado.agregarError(cliente.getId() + ": puntos disponibles negativos (" + cliente.getPuntosDisponibles() + ")");
+        }
+        if (!sistema.getRegistroPuntos().contiene(cliente)) {
+            resultado.agregarError(cliente.getId() + ": no esta en el arbol de puntos con " + cliente.getPuntos() + " puntos");
+        }
+    }
+
+    /** Suma del historial de puntos por divide y venceras. */
+    private int sumarMovimientos(MovimientoPuntos[] arr, int ini, int fin) {
+        if (ini > fin) {
+            return 0;
+        }
+        if (ini == fin) {
+            return arr[ini].getCantidad();
+        }
+        int medio = (ini + fin) / 2;
+        return sumarMovimientos(arr, ini, medio) + sumarMovimientos(arr, medio + 1, fin);
     }
 
     /**

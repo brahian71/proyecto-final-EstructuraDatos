@@ -1,8 +1,12 @@
 package monedero.ui;
 
+import monedero.modelo.Beneficio;
+import monedero.modelo.BeneficioActivo;
 import monedero.modelo.Categoria;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
+import monedero.modelo.MovimientoPuntos;
+import monedero.modelo.Rango;
 import monedero.modelo.Notificacion;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.Transaccion;
@@ -54,6 +58,9 @@ public class MenuConsola {
         System.out.println("10. Avanzar dias (reloj simulado)");
         System.out.println("11. Revertir ultima transaccion de un cliente");
         System.out.println("12. Ver notificaciones de un cliente");
+        System.out.println("13. Canjear puntos");
+        System.out.println("14. Historial de puntos y beneficios de un cliente");
+        System.out.println("15. Ranking y clientes por rango (arbol AVL)");
         System.out.println(" 0. Salir");
     }
 
@@ -105,6 +112,9 @@ public class MenuConsola {
             }
             case 11 -> revertir();
             case 12 -> verNotificaciones();
+            case 13 -> canjear();
+            case 14 -> verPuntos();
+            case 15 -> verRanking();
             case 0 -> System.out.println("Hasta luego");
             default -> System.out.println("  Opcion no valida");
         }
@@ -147,6 +157,48 @@ public class MenuConsola {
             System.out.println("  Sin notificaciones");
         }
         sistema.getNotificador().marcarLeidas(clienteId);
+    }
+
+    private void canjear() {
+        String clienteId = leerTexto("Id cliente: ");
+        Cliente cliente = sistema.buscarCliente(clienteId);
+        System.out.println("  Disponibles: " + cliente.getPuntosDisponibles() + " pts");
+        for (Beneficio b : Beneficio.values()) {
+            System.out.println("   " + (b.ordinal() + 1) + ". " + b.getCostoPuntos() + " pts - " + b.getDescripcion());
+        }
+        Beneficio beneficio = elegir("Beneficio", Beneficio.values());
+        sistema.canjear(clienteId, beneficio);
+        System.out.println("  OK. " + cliente);
+    }
+
+    private void verPuntos() {
+        String clienteId = leerTexto("Id cliente: ");
+        Cliente cliente = sistema.buscarCliente(clienteId);
+        System.out.println("  " + cliente + "  (canjeados: " + cliente.getPuntosCanjeados() + ")");
+        for (MovimientoPuntos m : sistema.historialPuntos(clienteId)) {
+            System.out.println("    " + m);
+        }
+        for (BeneficioActivo b : sistema.beneficios(clienteId)) {
+            boolean vigente = b.vigenteEn(sistema.getReloj().ahora());
+            System.out.println("  Beneficio " + b + (vigente ? " (vigente)" : " (vencido)"));
+        }
+    }
+
+    private void verRanking() {
+        System.out.println("  Top 5:");
+        int puesto = 1;
+        for (Cliente c : sistema.ranking(5)) {
+            System.out.println("   " + puesto++ + ". " + c);
+        }
+        for (Rango rango : Rango.values()) {
+            System.out.print("  " + rango + ":");
+            for (Cliente c : sistema.clientesDeRango(rango)) {
+                System.out.print(" " + c.getId() + "(" + c.getPuntos() + ")");
+            }
+            System.out.println();
+        }
+        System.out.println("  Arbol AVL: " + sistema.getRegistroPuntos().tamanio() + " nodos, altura "
+                + sistema.getRegistroPuntos().altura() + ", " + sistema.getRegistroPuntos().rotaciones() + " rotaciones");
     }
 
     private void informar(Transaccion t) {

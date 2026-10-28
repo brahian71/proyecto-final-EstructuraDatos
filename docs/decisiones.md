@@ -51,16 +51,57 @@ Sirven de base para el informe tecnico.
     transferencia recibida, cambio de rango y reversion. No se avisa cada
     transaccion para no llenar el buzon de ruido.
 
-## Pendientes (preguntas al profesor)
+17. **Dos cuentas de puntos**: acumulados (todo lo ganado menos lo revertido,
+    define el rango) y disponibles (acumulados menos lo canjeado, es lo que se
+    gasta). Canjear no baja de rango; revertir si, porque esos puntos nunca
+    debieron existir. No se puede revertir si los puntos ya se canjearon.
+18. **Historial de puntos por cliente** en lista enlazada (ganados, revertidos,
+    canjeados). Su suma debe dar los disponibles; lo revisa la integridad.
+19. **AVL de clientes con clave (puntos, id)**: el id desempata y hace la clave
+    unica. Cuando cambian los puntos se saca y se reinserta (O(log n)). Las
+    consultas de rango usan claves centinela (id "" y id maximo).
+20. **La comision se calcula con el rango y los beneficios del momento**, antes
+    de sumar los puntos de esa misma transaccion. La paga quien envia o retira;
+    el destino recibe el monto completo. Al revertir se devuelve tambien.
+21. **Politica de comision inyectable** (`PoliticaComision`): el sistema usa
+    `ComisionEstandar`; las pruebas de las fases 1 y 2 usan `SIN_COMISION` para
+    comprobar saldos exactos sin depender de las tarifas.
+22. **Beneficios del canje**: el descuento de transferencias y los retiros sin
+    cargo duran 30 dias del reloj simulado; el bono se deposita en el monedero
+    principal como transaccion `BONO` (no da puntos y no se puede revertir).
+23. **Integridad ampliada**: puntos disponibles == suma del historial de puntos,
+    cada cliente esta en el AVL con su clave actual, y el AVL esta ordenado,
+    con alturas correctas y balanceado (verificacion recursiva).
 
-- Estructuras propias o de `java.util`. La arquitectura soporta ambas.
-- Interfaz de consola o grafica. Por ahora es de consola.
-- Trabajo individual o en grupo, y fecha de entrega.
-- Valor de las comisiones. Hoy son 0 en `SistemaMonedero.calcularComision`;
-  el modelo ya las soporta.
-- Que reportes se esperan de los grafos.
-- Que debe verificar la integridad, ademas de lo listado arriba.
-- Que guarda el BST de puntos: clientes por puntos, o historial de puntos.
+## Respondidas (2026-10-28)
+
+- **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`
+  (temporal sobre `HashMap`) por una `TablaHash` propia.
+- **Interfaz grafica** (no consola). La consola queda para desarrollo.
+- **Trabajo individual.** Entrega estimada: mediados de noviembre de 2026
+  (sin fecha oficial).
+- **Pesos colombianos.** Ajustar montos de ejemplo, umbral de saldo bajo y
+  escala de puntos cuando sea pertinente.
+
+- **Comisiones (opcion C)**: transferencia 1 % con minimo $500; retiro
+  tarifa fija $2.000; depositos y movimientos internos gratis. Descuento por
+  rango en transferencias: Bronce 0 %, Plata 10 %, Oro 20 %, Platino 30 %; el
+  canje de 100 puntos suma 10 % mas; el de 500 deja los retiros en $0 por 30
+  dias (reloj simulado).
+- **Grafos**: una clase `GrafoDirigido<V>` para tres grafos (transferencias
+  entre clientes, flujo entre monederos, secuencias de categorias). Reportes:
+  top categorias por cliente, secuencias de gasto frecuentes, mayores
+  receptores, ciclos de transferencias (DFS), conexion entre clientes (BFS),
+  flujo entre monederos de un cliente.
+- **Arboles de puntos (opcion A)**: `ArbolAVL` hereda de `ArbolBST`. El sistema
+  usa un AVL de clientes ordenados por puntos (ranking, clientes por rango,
+  quien puede canjear). Tabla hash id -> cliente. Historial de puntos de cada
+  cliente en lista enlazada. El BST simple se usa para mostrar, con pruebas de
+  altura, por que hace falta balancear.
+
+## Pendientes
+
+- Que mas debe verificar la integridad (pregunta enviada al profesor).
 - Umbral de saldo bajo (hoy 1.000) y cuantas notificaciones guardar (hoy 10).
-- Unidad de moneda: con pesos reales, 1 punto por cada 100 deja a todos en
-  Platino muy rapido.
+- Monto del bono de 1000 puntos: el enunciado dice 50 unidades; en pesos
+  colombianos habria que reescalarlo (junto con la escala de puntos).
