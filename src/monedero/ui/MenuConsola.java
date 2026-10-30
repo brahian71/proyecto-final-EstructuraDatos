@@ -13,6 +13,9 @@ import monedero.modelo.Rango;
 import monedero.modelo.Notificacion;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.Transaccion;
+import monedero.estructuras.Coleccion;
+import monedero.servicio.AnalisisGastos;
+import monedero.servicio.FilaReporte;
 import monedero.servicio.SistemaMonedero;
 import monedero.servicio.VerificadorIntegridad;
 
@@ -67,6 +70,7 @@ public class MenuConsola {
         System.out.println("16. Programar transaccion recurrente");
         System.out.println("17. Ver transacciones programadas (cola de prioridad)");
         System.out.println("18. Cancelar transaccion programada");
+        System.out.println("19. Reportes de patrones de gasto (grafos)");
         System.out.println(" 0. Salir");
     }
 
@@ -132,6 +136,7 @@ public class MenuConsola {
                 sistema.getProgramador().cancelar(leerTexto("Id programada: "));
                 System.out.println("  Cancelada");
             }
+            case 19 -> reportes();
             case 0 -> System.out.println("Hasta luego");
             default -> System.out.println("  Opcion no valida");
         }
@@ -190,6 +195,51 @@ public class MenuConsola {
                 leerTexto("Descripcion: "), frecuencia, sistema.getReloj().ahora().plusDays(enDias),
                 veces == 0 ? OperacionProgramada.SIN_LIMITE : veces);
         System.out.println("  Programada " + op);
+    }
+
+    private void reportes() {
+        AnalisisGastos analisis = new AnalisisGastos(sistema);
+        System.out.println("   1. Gasto por categoria de un cliente");
+        System.out.println("   2. Secuencias de gasto mas frecuentes");
+        System.out.println("   3. Clientes que mas reciben por transferencias");
+        System.out.println("   4. Ciclos de transferencias entre clientes (DFS)");
+        System.out.println("   5. Conexion entre dos clientes (BFS)");
+        System.out.println("   6. Flujo de dinero entre monederos de un cliente");
+        switch (leerEntero("Reporte: ")) {
+            case 1 -> imprimir(analisis.gastoPorCategoria(leerTexto("Id cliente: ")));
+            case 2 -> {
+                String id = leerTexto("Id cliente (vacio = todos): ");
+                imprimir(analisis.secuenciasFrecuentes(id.isEmpty() ? null : id, 5));
+            }
+            case 3 -> imprimir(analisis.mayoresReceptores(5));
+            case 4 -> {
+                Coleccion<Coleccion<String>> ciclos = analisis.ciclosTransferencias();
+                if (ciclos.estaVacia()) {
+                    System.out.println("  No hay ciclos");
+                }
+                for (Coleccion<String> ciclo : ciclos) {
+                    System.out.println("  " + String.join(" -> ", ciclo));
+                }
+            }
+            case 5 -> {
+                Coleccion<String> camino = analisis.conexion(leerTexto("Cliente A: "), leerTexto("Cliente B: "));
+                System.out.println(camino.estaVacia() ? "  No estan conectados"
+                        : "  " + String.join(" -> ", camino) + " (" + (camino.tamanio() - 1) + " pasos)");
+            }
+            case 6 -> imprimir(analisis.flujoMonederos(leerTexto("Id cliente: ")));
+            default -> System.out.println("  Reporte no valido");
+        }
+    }
+
+    private static void imprimir(Iterable<FilaReporte> filas) {
+        boolean alguna = false;
+        for (FilaReporte f : filas) {
+            System.out.println("  " + f);
+            alguna = true;
+        }
+        if (!alguna) {
+            System.out.println("  Sin datos");
+        }
     }
 
     private void canjear() {

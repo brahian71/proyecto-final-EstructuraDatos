@@ -91,11 +91,31 @@ Sirven de base para el informe tecnico.
 29. **Lo ejecutado por una programada es una transaccion normal**: da puntos,
     paga comision y se puede revertir.
 
+30. **Grafo con lista de adyacencia** (cada vertice guarda una tabla hash
+    destino -> arista): sumar peso a una arista existente es O(1) y la memoria
+    es O(V + E). Cada arista acumula dinero (peso) y cantidad de transacciones
+    (veces).
+31. **Los grafos se arman al pedir el reporte** desde el registro global de
+    transacciones (O(T)), sin guardarlos aparte: asi nunca quedan
+    desactualizados y las revertidas se excluyen solas.
+32. **Grafo de categorias = secuencias de gasto**: X -> Y si despues de gastar
+    en X el mismo cliente gasto en Y. Nunca une gastos de clientes distintos.
+    Gasto = retiro o transferencia a otro cliente (los movimientos entre
+    monederos propios no son gasto).
+33. **Ciclos con DFS de tres estados** (sin visitar, en pila, terminado): cada
+    arista hacia un vertice "en pila" cierra un ciclo. Encuentra al menos uno si
+    existe; no enumera todos (pueden ser exponenciales).
+34. **Conexion entre clientes con BFS** (cola FIFO propia): camino con menos
+    intermediarios.
+35. **Rankings de los reportes con el monticulo propio** (k log k).
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`
   (temporal sobre `HashMap`) por una `TablaHash` propia.
-- **Interfaz grafica** (no consola). La consola queda para desarrollo.
+- **Interfaz grafica** (no consola), hecha con **Swing** (elegido el 2026-10-30:
+  viene con el JDK, no requiere configurar librerias). La consola queda para
+  desarrollo.
 - **Trabajo individual.** Entrega estimada: mediados de noviembre de 2026
   (sin fecha oficial).
 - **Pesos colombianos.** Ajustar montos de ejemplo, umbral de saldo bajo y
