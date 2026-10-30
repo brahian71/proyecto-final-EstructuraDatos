@@ -34,6 +34,13 @@ public class Reloj {
         actual = actual.plusDays(dias);
     }
 
+    /** Mueve el reloj a la fecha indicada (si ya paso, no hace nada: nunca retrocede). */
+    public void avanzarHasta(LocalDateTime fecha) {
+        if (fecha.isAfter(actual)) {
+            actual = fecha;
+        }
+    }
+
     public void avanzarMinutos(long minutos) {
         if (minutos < 0) {
             throw new IllegalArgumentException("No se puede retroceder el reloj: " + minutos);

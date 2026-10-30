@@ -2,8 +2,11 @@ package monedero.datos;
 
 import monedero.modelo.Categoria;
 import monedero.modelo.Cliente;
+import monedero.modelo.Frecuencia;
 import monedero.modelo.Monedero;
+import monedero.modelo.OperacionProgramada;
 import monedero.modelo.TipoMonedero;
+import monedero.modelo.TipoTransaccion;
 import monedero.servicio.SistemaMonedero;
 
 /**
@@ -51,6 +54,16 @@ public final class DatosIniciales {
         sistema.transferir(carlaPrincipal, brunoPrincipal, 1_500, Categoria.ENTRETENIMIENTO, "Cine");
         sistema.retirar(carlaPrincipal, 2_000, Categoria.SALUD, "Farmacia");
         sistema.transferir(brunoGastos.getId(), anaPrincipal, 2_500, Categoria.ALIMENTACION, "Almuerzo compartido");
+
+        // programadas: se ejecutan al avanzar el reloj desde el menu
+        var programador = sistema.getProgramador();
+        var hoy = sistema.getReloj().ahora();
+        programador.programar(TipoTransaccion.TRANSFERENCIA, anaPrincipal, anaAhorros.getId(), 5_000,
+                Categoria.AHORRO, "Ahorro mensual", Frecuencia.MENSUAL, hoy.plusDays(1), OperacionProgramada.SIN_LIMITE);
+        programador.programar(TipoTransaccion.DEPOSITO, null, principal(diego), 20_000, null,
+                "Arriendo recibido", Frecuencia.MENSUAL, hoy.plusDays(5), 6);
+        programador.programar(TipoTransaccion.TRANSFERENCIA, brunoPrincipal, carlaPrincipal, 2_000,
+                Categoria.EDUCACION, "Clases de guitarra", Frecuencia.SEMANAL, hoy.plusDays(2), 4);
     }
 
     /** El primer monedero de cada cliente es el principal (lo crea registrarCliente). */

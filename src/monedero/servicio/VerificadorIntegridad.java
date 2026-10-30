@@ -23,6 +23,8 @@ import monedero.modelo.Transaccion;
  * Arbol AVL de puntos:
  *   8. orden, alturas y balance correctos (ArbolBST.esValido, recursivo) y
  *      tiene exactamente un nodo por cliente
+ * Cola de programadas:
+ *   9. cumple la propiedad de monticulo (cada padre <= sus hijos, recursivo)
  *
  * Las transacciones revertidas siguen en el historial pero cuentan 0 en
  * saldo y puntos (efectoVigenteSobre / puntosVigentes).
@@ -51,6 +53,9 @@ public class VerificadorIntegridad {
             clientes++;
         }
         verificarArbolPuntos(clientes, resultado);
+        if (!sistema.getProgramador().colaValida()) {
+            resultado.agregarError("Cola de programadas: no cumple la propiedad de monticulo");
+        }
         return resultado;
     }
 

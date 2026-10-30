@@ -73,6 +73,24 @@ Sirven de base para el informe tecnico.
     cada cliente esta en el AVL con su clave actual, y el AVL esta ordenado,
     con alturas correctas y balanceado (verificacion recursiva).
 
+24. **Cola de prioridad = monticulo binario de minimos** en arreglo, ordenado
+    por fecha de proxima ejecucion; en empate sale la programada antes
+    (secuencia). insertar/extraer O(log n). El proyecto de referencia usaba
+    una lista ordenada (insertar O(n)).
+25. **Simulacion por eventos**: al avanzar el reloj se saca la programada mas
+    proxima, el reloj salta a su fecha exacta, se ejecuta y, si es
+    recurrente, vuelve a la cola con su siguiente fecha. Cada transaccion queda
+    con la fecha en que debia ocurrir y el historial sigue en orden.
+26. **Fechas recurrentes desde la fecha inicial** (ejecucion n = inicio + n
+    periodos), no sumando a la anterior: una mensual del 31 no se corre al 28
+    para siempre.
+27. **Si una programada falla** (saldo insuficiente) se avisa al cliente, se
+    cuenta el fallo y se sigue con la siguiente fecha; no se reintenta.
+28. **Recordatorio 24 horas antes** de cada ejecucion (una vez por fecha),
+    tambien dentro de un salto largo del reloj.
+29. **Lo ejecutado por una programada es una transaccion normal**: da puntos,
+    paga comision y se puede revertir.
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`

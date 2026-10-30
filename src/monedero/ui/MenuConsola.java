@@ -3,6 +3,9 @@ package monedero.ui;
 import monedero.modelo.Beneficio;
 import monedero.modelo.BeneficioActivo;
 import monedero.modelo.Categoria;
+import monedero.modelo.Frecuencia;
+import monedero.modelo.OperacionProgramada;
+import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
 import monedero.modelo.MovimientoPuntos;
@@ -61,6 +64,9 @@ public class MenuConsola {
         System.out.println("13. Canjear puntos");
         System.out.println("14. Historial de puntos y beneficios de un cliente");
         System.out.println("15. Ranking y clientes por rango (arbol AVL)");
+        System.out.println("16. Programar transaccion recurrente");
+        System.out.println("17. Ver transacciones programadas (cola de prioridad)");
+        System.out.println("18. Cancelar transaccion programada");
         System.out.println(" 0. Salir");
     }
 
@@ -107,14 +113,25 @@ public class MenuConsola {
             }
             case 9 -> System.out.println(new VerificadorIntegridad(sistema).verificar());
             case 10 -> {
-                sistema.getReloj().avanzarDias(leerEntero("Dias: "));
-                System.out.println("  Fecha actual: " + sistema.getReloj().ahora());
+                int procesadas = sistema.avanzarDias(leerEntero("Dias: "));
+                System.out.println("  Fecha actual: " + sistema.getReloj().ahora().toLocalDate()
+                        + ". Programadas procesadas: " + procesadas);
             }
             case 11 -> revertir();
             case 12 -> verNotificaciones();
             case 13 -> canjear();
             case 14 -> verPuntos();
             case 15 -> verRanking();
+            case 16 -> programar();
+            case 17 -> {
+                for (OperacionProgramada op : sistema.getProgramador().pendientes()) {
+                    System.out.println("  " + op);
+                }
+            }
+            case 18 -> {
+                sistema.getProgramador().cancelar(leerTexto("Id programada: "));
+                System.out.println("  Cancelada");
+            }
             case 0 -> System.out.println("Hasta luego");
             default -> System.out.println("  Opcion no valida");
         }
@@ -157,6 +174,22 @@ public class MenuConsola {
             System.out.println("  Sin notificaciones");
         }
         sistema.getNotificador().marcarLeidas(clienteId);
+    }
+
+    private void programar() {
+        TipoTransaccion tipo = elegir("Tipo", new TipoTransaccion[]{
+                TipoTransaccion.DEPOSITO, TipoTransaccion.RETIRO, TipoTransaccion.TRANSFERENCIA});
+        String origen = tipo == TipoTransaccion.DEPOSITO ? null : leerTexto("Id monedero origen: ");
+        String destino = tipo == TipoTransaccion.RETIRO ? null : leerTexto("Id monedero destino: ");
+        long monto = leerMonto();
+        Categoria categoria = tipo == TipoTransaccion.DEPOSITO ? null : elegir("Categoria", Categoria.values());
+        Frecuencia frecuencia = elegir("Frecuencia", Frecuencia.values());
+        int enDias = leerEntero("Primera ejecucion en cuantos dias (0 = hoy): ");
+        int veces = frecuencia == Frecuencia.UNA_VEZ ? 1 : leerEntero("Cuantas veces (0 = sin limite): ");
+        OperacionProgramada op = sistema.getProgramador().programar(tipo, origen, destino, monto, categoria,
+                leerTexto("Descripcion: "), frecuencia, sistema.getReloj().ahora().plusDays(enDias),
+                veces == 0 ? OperacionProgramada.SIN_LIMITE : veces);
+        System.out.println("  Programada " + op);
     }
 
     private void canjear() {

@@ -28,6 +28,7 @@ import monedero.modelo.Transaccion;
  * Estructuras:
  *   clientes, monederos  TablaHash      buscar por id O(1) promedio
  *   registroPuntos       ArbolAVL       clientes ordenados por puntos
+ *   programador          Monticulo      transacciones programadas por fecha
  *   transacciones        ListaEnlazada  registro global en orden, para
  *                                       reportes y grafos (fase 5)
  */
@@ -41,6 +42,7 @@ public class SistemaMonedero {
     private final Coleccion<Transaccion> transacciones = new ListaEnlazada<>();
     private final RegistroPuntos registroPuntos = new RegistroPuntos();
     private final Notificador notificador = new Notificador();
+    private final ProgramadorTransacciones programador = new ProgramadorTransacciones(this);
     private final PoliticaComision politicaComision;
     private final Reloj reloj;
 
@@ -291,6 +293,22 @@ public class SistemaMonedero {
 
     public int cantidadTransacciones() {
         return transacciones.tamanio();
+    }
+
+    public ProgramadorTransacciones getProgramador() {
+        return programador;
+    }
+
+    /**
+     * Avanza el reloj simulado ejecutando, en orden de fecha, las
+     * transacciones programadas que vencen en ese lapso.
+     * @return cuantas ejecuciones programadas se procesaron
+     */
+    public int avanzarDias(int dias) {
+        if (dias < 0) {
+            throw new OperacionInvalidaException("No se puede retroceder el reloj: " + dias);
+        }
+        return programador.avanzarHasta(reloj.ahora().plusDays(dias));
     }
 
     public Notificador getNotificador() {
