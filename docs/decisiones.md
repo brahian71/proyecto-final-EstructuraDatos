@@ -109,6 +109,21 @@ Sirven de base para el informe tecnico.
     intermediarios.
 35. **Rankings de los reportes con el monticulo propio** (k log k).
 
+36. **Interfaz en Swing con una pestania por funcionalidad** (resumen,
+    operaciones, historial, puntos y canje, programadas, reportes y grafos,
+    clientes). La interfaz no tiene logica: solo lee y llama a
+    `SistemaMonedero`. Despues de cada operacion se refrescan todas las vistas
+    (`Contexto.refrescarTodo`).
+37. **Antes de confirmar se muestra la comision y los puntos** que daria la
+    operacion (`SistemaMonedero.cotizarComision`).
+38. **Las tablas usan un modelo propio** (`ModeloTabla`) que se llena desde
+    nuestras estructuras; los clientes y monederos se muestran ordenados por id
+    con un `ArbolBST` (la tabla hash no guarda orden).
+39. **El grafo de transferencias se dibuja** (vertices en circulo, grosor segun
+    el dinero) y los reportes de ciclos (DFS) y conexion (BFS) resaltan en
+    rojo lo que encontraron.
+40. **El menu de consola se conserva** (`Main --consola`) para pruebas rapidas.
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`

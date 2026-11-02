@@ -3,16 +3,30 @@ package monedero;
 import monedero.datos.DatosIniciales;
 import monedero.servicio.SistemaMonedero;
 import monedero.ui.MenuConsola;
+import monedero.ui.gui.VentanaPrincipal;
 
+import javax.swing.SwingUtilities;
 import java.util.Scanner;
 
+/**
+ * Abre la interfaz grafica. Con el argumento --consola usa el menu de texto
+ * (se dejo para desarrollo y pruebas rapidas).
+ */
 public class Main {
 
     public static void main(String[] args) {
         SistemaMonedero sistema = new SistemaMonedero();
         DatosIniciales.cargar(sistema);
-        try (Scanner entrada = new Scanner(System.in)) {
-            new MenuConsola(sistema, entrada).iniciar();
+
+        if (args.length > 0 && args[0].equals("--consola")) {
+            try (Scanner entrada = new Scanner(System.in)) {
+                new MenuConsola(sistema, entrada).iniciar();
+            }
+            return;
         }
+        SwingUtilities.invokeLater(() -> {
+            VentanaPrincipal.aplicarAspecto();
+            new VentanaPrincipal(sistema).setVisible(true);
+        });
     }
 }

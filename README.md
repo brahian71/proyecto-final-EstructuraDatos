@@ -6,14 +6,17 @@ Java 21, IntelliJ IDEA, sin dependencias externas.
 ## Como correr
 
 En IntelliJ: abrir la carpeta del proyecto, marcar `src` como Sources y `test`
-como Test Sources, y ejecutar `monedero.Main` (menu) o `monedero.PruebasFase1` /
-`monedero.PruebasFase1` ... `monedero.PruebasFase5` (pruebas).
+como Test Sources, y ejecutar:
+- `monedero.Main`: abre la interfaz grafica (con el argumento `--consola`, el menu de texto).
+- `monedero.PruebasFase1` ... `monedero.PruebasFase5`: pruebas.
+- `monedero.CapturasInterfaz`: guarda una imagen de cada pestania en `docs/capturas`.
 
 Por consola (PowerShell):
 
 ```
 javac -encoding UTF-8 -d out (Get-ChildItem -Recurse -Filter *.java src, test | ForEach-Object { $_.FullName })
 java -cp out monedero.Main
+java -cp out monedero.Main --consola
 java -cp out monedero.PruebasFase1
 java -cp out monedero.PruebasFase2
 java -cp out monedero.PruebasFase3
@@ -45,7 +48,11 @@ src/monedero/
   excepciones/   SaldoInsuficienteException, NoEncontradoException,
                  OperacionInvalidaException
   datos/         DatosIniciales (datos de ejemplo, no hay persistencia)
-  ui/            MenuConsola
+  ui/            MenuConsola (texto, para desarrollo)
+  ui/gui/        VentanaPrincipal y una pestania por funcionalidad: PanelResumen,
+                 PanelOperaciones, PanelHistorial, PanelPuntos,
+                 PanelProgramadas, PanelReportes (+ PanelGrafo), PanelClientes;
+                 Contexto, ModeloTabla, Formato
 test/monedero/
   PruebasFase1.java   pruebas sin JUnit, imprimen OK / FALLO
   PruebasFase2.java
@@ -53,6 +60,7 @@ test/monedero/
   PruebasFase4.java
   PruebasFase5.java
   modelo/Corruptor    ayuda de pruebas para simular datos corruptos
+  CapturasInterfaz    imagenes de la interfaz para revisar y para el informe
 ```
 
 ## Fases
@@ -66,7 +74,7 @@ Entrega estimada: mediados de noviembre de 2026.
 | 3 | Arbol de puntos, rangos, canje, comisiones, tabla hash propia | BST, AVL, tabla hash | Hecha (28 oct) |
 | 4 | Transacciones programadas recurrentes, recordatorios | Monticulo (cola de prioridad) | Hecha (30 oct) |
 | 5 | Patrones de gasto, transferencias entre clientes, multimonedero | Grafo dirigido (BFS, DFS), cola | Hecha (30 oct) |
-| 6 | Interfaz grafica | Swing | 3 - 9 nov |
+| 6 | Interfaz grafica (7 pestanias, grafo dibujado) | Swing | Hecha (1 nov) |
 | 7 | Ajustes a pesos colombianos, umbrales, datos de demostracion | - | 10 nov |
 | 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | 11 - 14 nov |
 
