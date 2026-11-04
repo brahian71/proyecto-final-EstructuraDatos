@@ -96,6 +96,16 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         destino.setEnabled(t != TipoTransaccion.RETIRO);
         categoria.setEnabled(t != TipoTransaccion.DEPOSITO);
         veces.setEnabled(frecuencia.getSelectedItem() != Frecuencia.UNA_VEZ);
+        llenarDestino();
+    }
+
+    /**
+     * Un deposito programado entra a un monedero del cliente actual; una
+     * transferencia puede ir a cualquier monedero. Si se ofrecieran todos en
+     * el deposito, quedaria programado a nombre de otro cliente.
+     */
+    private void llenarDestino() {
+        contexto.llenarMonederos(destino, tipo.getSelectedItem() != TipoTransaccion.DEPOSITO);
     }
 
     private void programar() {
@@ -133,7 +143,7 @@ final class PanelProgramadas extends JPanel implements Refrescable {
     public void refrescar() {
         // origen: monederos del cliente actual; destino: cualquiera (en un deposito, uno del cliente)
         contexto.llenarMonederos(origen, false);
-        contexto.llenarMonederos(destino, true);
+        llenarDestino();
         Coleccion<Object[]> filas = ModeloTabla.nuevasFilas();
         for (OperacionProgramada op : contexto.sistema().getProgramador().pendientes()) {
             String restantes = op.getEjecucionesTotales() == OperacionProgramada.SIN_LIMITE ? "sin limite"

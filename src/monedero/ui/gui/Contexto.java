@@ -1,6 +1,6 @@
 package monedero.ui.gui;
 
-import monedero.estructuras.ArbolBST;
+import monedero.estructuras.ArbolAVL;
 import monedero.estructuras.Coleccion;
 import monedero.estructuras.ListaEnlazada;
 import monedero.modelo.Cliente;
@@ -65,9 +65,13 @@ final class Contexto {
         }
     }
 
-    /** Clientes ordenados por id con un BST (la tabla hash los devuelve sin orden). */
+    /**
+     * Clientes ordenados por id (la tabla hash no guarda orden). Se usa un AVL
+     * y no un BST simple: los ids salen de la tabla casi en orden (C001, C002...)
+     * y con claves ordenadas un BST simple quedaria como una lista.
+     */
     Coleccion<Cliente> clientesOrdenados() {
-        ArbolBST<String, Cliente> orden = new ArbolBST<>();
+        ArbolAVL<String, Cliente> orden = new ArbolAVL<>();
         for (Cliente c : sistema.getClientes()) {
             orden.insertar(c.getId(), c);
         }
@@ -75,7 +79,7 @@ final class Contexto {
     }
 
     Coleccion<Monedero> monederosOrdenados() {
-        ArbolBST<String, Monedero> orden = new ArbolBST<>();
+        ArbolAVL<String, Monedero> orden = new ArbolAVL<>();
         for (Monedero m : sistema.getMonederos()) {
             orden.insertar(m.getId(), m);
         }
