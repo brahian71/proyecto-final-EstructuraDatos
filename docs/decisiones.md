@@ -118,7 +118,9 @@ Sirven de base para el informe tecnico.
     operacion (`SistemaMonedero.cotizarComision`).
 38. **Las tablas usan un modelo propio** (`ModeloTabla`) que se llena desde
     nuestras estructuras; los clientes y monederos se muestran ordenados por id
-    con un `ArbolBST` (la tabla hash no guarda orden).
+    con un `ArbolAVL` (la tabla hash no guarda orden). No con un `ArbolBST`
+    simple: la tabla entrega los ids casi en orden y el BST se degeneraba
+    (altura 461 con 2000 clientes, contra 12 del AVL).
 39. **El grafo de transferencias se dibuja** (vertices en circulo, grosor segun
     el dinero) y los reportes de ciclos (DFS) y conexion (BFS) resaltan en
     rojo lo que encontraron.
