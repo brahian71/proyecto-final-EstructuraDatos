@@ -14,6 +14,7 @@ import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoNotificacion;
 import monedero.modelo.Transaccion;
 import monedero.servicio.Notificador;
+import monedero.servicio.CalculadoraPuntos;
 import monedero.servicio.PoliticaComision;
 import monedero.servicio.Reloj;
 import monedero.servicio.SistemaMonedero;
@@ -242,8 +243,8 @@ public class PruebasFase2 {
         s.depositar(m, 5000, "x");
         s.retirar(m, 1000, Categoria.OTROS, "x");
         verificar("saldo bajo: no avisa con 4000", s.getNotificador().noLeidas(ana.getId()) == 0);
-        s.retirar(m, 3500, Categoria.OTROS, "x");
-        verificar("saldo bajo: avisa con 500", ultimaDe(s, ana.getId()).getTipo() == TipoNotificacion.SALDO_BAJO);
+        s.retirar(m, 3600, Categoria.OTROS, "x");
+        verificar("saldo bajo: avisa con 400 (umbral 500 unidades)", ultimaDe(s, ana.getId()).getTipo() == TipoNotificacion.SALDO_BAJO);
     }
 
     private static void notificaTransferenciaRecibida() {
@@ -298,7 +299,7 @@ public class PruebasFase2 {
     // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
-        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION);
+        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);
     }
 
     private static String principal(Cliente cliente) {

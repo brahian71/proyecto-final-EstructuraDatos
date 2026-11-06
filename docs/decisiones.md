@@ -47,7 +47,7 @@ Sirven de base para el informe tecnico.
     la transaccion) y se avisa si el cliente cambia de rango.
 16. **Notificaciones en lista circular de capacidad 10 por cliente**. Cuando
     se llena, la nueva sobrescribe la mas vieja reutilizando el nodo (O(1), sin
-    crecer). Se avisa: saldo bajo (< 1.000 despues de un retiro o envio),
+    crecer). Se avisa: saldo bajo (< 500 unidades = $50.000 despues de un retiro o envio),
     transferencia recibida, cambio de rango y reversion. No se avisa cada
     transaccion para no llenar el buzon de ruido.
 
@@ -126,6 +126,21 @@ Sirven de base para el informe tecnico.
     rojo lo que encontraron.
 40. **El menu de consola se conserva** (`Main --consola`) para pruebas rapidas.
 
+41. **Escala de puntos en pesos colombianos (opcion C)**: el enunciado da los
+    puntos "por cada 100 unidades de moneda" sin decir cuanto vale una unidad.
+    Se fija unidad = $100, asi los puntos se ganan por cada $10.000 completos
+    (un salario de $2.000.000 da 200 puntos y se llega a Platino con meses de
+    uso, no con el primer deposito). La regla 1/2/3 no cambia.
+42. **Lo que el enunciado expresa en unidades se convierte con la misma
+    escala**: el bono de 50 unidades = $5.000 y el umbral de saldo bajo de 500
+    unidades = $50.000. Las comisiones ($500 minimo, $2.000 por retiro) ya se
+    definieron en pesos y no dependen de la escala.
+43. **La escala es configurable** (`CalculadoraPuntos`): el programa usa
+    `PESOS_COLOMBIANOS`; las pruebas usan `UNIDAD_UN_PESO` (unidad = $1) para
+    trabajar con numeros simples, igual que usan `SIN_COMISION`.
+44. **Datos de demostracion en pesos reales** (salarios, arriendo, mercado),
+    elegidos para que haya clientes en Bronce, Plata y Oro.
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`
@@ -135,8 +150,8 @@ Sirven de base para el informe tecnico.
   desarrollo.
 - **Trabajo individual.** Entrega estimada: mediados de noviembre de 2026
   (sin fecha oficial).
-- **Pesos colombianos.** Ajustar montos de ejemplo, umbral de saldo bajo y
-  escala de puntos cuando sea pertinente.
+- **Pesos colombianos.** Escala de puntos con unidad = $100 (opcion C, elegida
+  el 2026-11-03); ver decisiones 41 a 44.
 
 - **Comisiones (opcion C)**: transferencia 1 % con minimo $500; retiro
   tarifa fija $2.000; depositos y movimientos internos gratis. Descuento por
@@ -157,6 +172,4 @@ Sirven de base para el informe tecnico.
 ## Pendientes
 
 - Que mas debe verificar la integridad (pregunta enviada al profesor).
-- Umbral de saldo bajo (hoy 1.000) y cuantas notificaciones guardar (hoy 10).
-- Monto del bono de 1000 puntos: el enunciado dice 50 unidades; en pesos
-  colombianos habria que reescalarlo (junto con la escala de puntos).
+- Cuantas notificaciones guardar por cliente (hoy 10).

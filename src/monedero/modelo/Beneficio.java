@@ -8,10 +8,13 @@ public enum Beneficio {
 
     DESCUENTO_TRANSFERENCIAS(100, 30, "10% menos de comision en transferencias por 30 dias"),
     RETIROS_SIN_CARGO(500, 30, "Retiros sin comision por 30 dias"),
-    BONO_SALDO(1000, 0, "Bono de $" + Beneficio.MONTO_BONO + " en el monedero principal");
+    BONO_SALDO(1000, 0, "Bono de saldo de " + Beneficio.UNIDADES_BONO + " unidades en el monedero principal");
 
-    /** Valor del enunciado ("50 unidades"); pendiente reescalar a pesos colombianos. */
-    public static final long MONTO_BONO = 50;
+    /**
+     * "Bono de saldo de 50 unidades" del enunciado. Se pasa a pesos con
+     * CalculadoraPuntos.pesos (con pesos colombianos: $5.000).
+     */
+    public static final long UNIDADES_BONO = 50;
 
     private final int costoPuntos;
     private final int duracionDias;

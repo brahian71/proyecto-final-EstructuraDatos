@@ -43,8 +43,10 @@ final class PanelPuntos extends JPanel implements Refrescable {
         canje.add(disponibles, BorderLayout.NORTH);
         JPanel botones = new JPanel(new GridLayout(Beneficio.values().length, 1, 0, 6));
         for (Beneficio b : Beneficio.values()) {
+            String detalle = b == Beneficio.BONO_SALDO
+                    ? " (" + Formato.pesos(contexto.sistema().montoBono()) + ")" : "";
             JButton boton = new JButton("<html><b>" + b.getCostoPuntos() + " pts</b> &nbsp; "
-                    + b.getDescripcion() + "</html>");
+                    + b.getDescripcion() + detalle + "</html>");
             boton.setHorizontalAlignment(SwingConstants.LEFT);
             boton.addActionListener(e -> canjear(b));
             botonesCanje[b.ordinal()] = boton;

@@ -54,12 +54,22 @@ public class PruebasFase1 {
     }
 
     private static void puntosPorTipo() {
-        verificar("puntos: deposito 1 x 100", CalculadoraPuntos.calcular(TipoTransaccion.DEPOSITO, 1000) == 10);
-        verificar("puntos: retiro 2 x 100", CalculadoraPuntos.calcular(TipoTransaccion.RETIRO, 1000) == 20);
-        verificar("puntos: transferencia 3 x 100", CalculadoraPuntos.calcular(TipoTransaccion.TRANSFERENCIA, 1000) == 30);
-        verificar("puntos: solo centenas completas", CalculadoraPuntos.calcular(TipoTransaccion.DEPOSITO, 299) == 2);
-        verificar("puntos: menos de 100 da 0", CalculadoraPuntos.calcular(TipoTransaccion.TRANSFERENCIA, 99) == 0);
-        verificar("puntos: movimiento interno 0", CalculadoraPuntos.calcular(TipoTransaccion.MOVIMIENTO_INTERNO, 5000) == 0);
+        CalculadoraPuntos uno = CalculadoraPuntos.UNIDAD_UN_PESO;
+        verificar("puntos: deposito 1 x 100", uno.calcular(TipoTransaccion.DEPOSITO, 1000) == 10);
+        verificar("puntos: retiro 2 x 100", uno.calcular(TipoTransaccion.RETIRO, 1000) == 20);
+        verificar("puntos: transferencia 3 x 100", uno.calcular(TipoTransaccion.TRANSFERENCIA, 1000) == 30);
+        verificar("puntos: solo centenas completas", uno.calcular(TipoTransaccion.DEPOSITO, 299) == 2);
+        verificar("puntos: menos de 100 da 0", uno.calcular(TipoTransaccion.TRANSFERENCIA, 99) == 0);
+        verificar("puntos: movimiento interno 0", uno.calcular(TipoTransaccion.MOVIMIENTO_INTERNO, 5000) == 0);
+
+        // pesos colombianos: unidad = $100, puntos por cada $10.000 completos
+        CalculadoraPuntos cop = CalculadoraPuntos.PESOS_COLOMBIANOS;
+        verificar("cop: salario $2.000.000 = 200 pts", cop.calcular(TipoTransaccion.DEPOSITO, 2_000_000) == 200);
+        verificar("cop: retiro $50.000 = 10 pts", cop.calcular(TipoTransaccion.RETIRO, 50_000) == 10);
+        verificar("cop: transferencia $25.000 = 6 pts", cop.calcular(TipoTransaccion.TRANSFERENCIA, 25_000) == 6);
+        verificar("cop: menos de $10.000 da 0", cop.calcular(TipoTransaccion.DEPOSITO, 9_999) == 0);
+        verificar("cop: 50 unidades = $5.000", cop.pesos(50) == 5_000);
+        lanza("escala: unidad 0 lanza", IllegalArgumentException.class, () -> new CalculadoraPuntos(0));
     }
 
     private static void rangosEnLosLimites() {
@@ -209,7 +219,7 @@ public class PruebasFase1 {
     // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
-        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION);
+        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);
     }
 
     private static String principal(Cliente cliente) {

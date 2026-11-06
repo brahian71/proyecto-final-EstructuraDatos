@@ -34,8 +34,11 @@ import monedero.modelo.Transaccion;
  */
 public class SistemaMonedero {
 
-    /** Por debajo de este saldo, despues de un retiro o envio, se avisa. */
-    public static final long UMBRAL_SALDO_BAJO = 1_000;
+    /**
+     * Por debajo de este saldo (en unidades de moneda), despues de un retiro o
+     * envio, se avisa. Con pesos colombianos: $50.000.
+     */
+    public static final long UNIDADES_SALDO_BAJO = 500;
 
     private final Mapa<String, Cliente> clientes = new TablaHash<>();
     private final Mapa<String, Monedero> monederos = new TablaHash<>();
@@ -44,6 +47,7 @@ public class SistemaMonedero {
     private final Notificador notificador = new Notificador();
     private final ProgramadorTransacciones programador = new ProgramadorTransacciones(this);
     private final PoliticaComision politicaComision;
+    private final CalculadoraPuntos calculadoraPuntos;
     private final Reloj reloj;
 
     private int consecutivoCliente = 0;
@@ -59,11 +63,16 @@ public class SistemaMonedero {
     }
 
     public SistemaMonedero(Reloj reloj, PoliticaComision politicaComision) {
-        if (reloj == null || politicaComision == null) {
-            throw new IllegalArgumentException("El reloj y la politica de comision no pueden ser nulos");
+        this(reloj, politicaComision, CalculadoraPuntos.PESOS_COLOMBIANOS);
+    }
+
+    public SistemaMonedero(Reloj reloj, PoliticaComision politicaComision, CalculadoraPuntos calculadoraPuntos) {
+        if (reloj == null || politicaComision == null || calculadoraPuntos == null) {
+            throw new IllegalArgumentException("El reloj, la comision y la escala de puntos no pueden ser nulos");
         }
         this.reloj = reloj;
         this.politicaComision = politicaComision;
+        this.calculadoraPuntos = calculadoraPuntos;
     }
 
     // ------------------------------------------------------------------ clientes y monederos
@@ -234,7 +243,7 @@ public class SistemaMonedero {
         registroPuntos.canjear(cliente, beneficio, reloj.ahora());
         if (beneficio == Beneficio.BONO_SALDO) {
             Monedero principal = cliente.getMonederos().iterator().next();
-            Transaccion t = crearTransaccion(TipoTransaccion.BONO, Beneficio.MONTO_BONO, 0, null,
+            Transaccion t = crearTransaccion(TipoTransaccion.BONO, montoBono(), 0, null,
                     principal.getId(), null, "Canje de puntos");
             principal.aplicar(t);
             transacciones.agregar(t);
@@ -258,6 +267,19 @@ public class SistemaMonedero {
 
     public Coleccion<Cliente> ranking(int n) {
         return registroPuntos.ranking(n);
+    }
+
+    /** Bono de 50 unidades en pesos segun la escala. */
+    public long montoBono() {
+        return calculadoraPuntos.pesos(Beneficio.UNIDADES_BONO);
+    }
+
+    public long umbralSaldoBajo() {
+        return calculadoraPuntos.pesos(UNIDADES_SALDO_BAJO);
+    }
+
+    public CalculadoraPuntos getCalculadoraPuntos() {
+        return calculadoraPuntos;
     }
 
     public RegistroPuntos getRegistroPuntos() {
@@ -337,7 +359,7 @@ public class SistemaMonedero {
 
     private Transaccion crearTransaccion(TipoTransaccion tipo, long monto, long comision, String origenId,
                                          String destinoId, Categoria categoria, String descripcion) {
-        int puntos = CalculadoraPuntos.calcular(tipo, monto);
+        int puntos = calculadoraPuntos.calcular(tipo, monto);
         String id = String.format("T%04d", ++consecutivoTransaccion);
         return new Transaccion(id, tipo, monto, comision, origenId, destinoId, categoria,
                 reloj.ahora(), descripcion, puntos);
@@ -354,7 +376,7 @@ public class SistemaMonedero {
     }
 
     private void avisarSiSaldoBajo(Monedero monedero) {
-        if (monedero.getSaldo() < UMBRAL_SALDO_BAJO) {
+        if (monedero.getSaldo() < umbralSaldoBajo()) {
             notificador.notificar(monedero.getClienteId(), TipoNotificacion.SALDO_BAJO,
                     "Saldo bajo en " + monedero.getNombre() + " (" + monedero.getId() + "): $" + monedero.getSaldo(),
                     reloj.ahora());

@@ -5,7 +5,6 @@ import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
 import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Transaccion;
-import monedero.servicio.CalculadoraPuntos;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -179,7 +178,7 @@ final class PanelOperaciones extends JPanel implements Refrescable {
             long monto = Formato.leerMonto(campoMonto.getText());
             long comision = origen == null || origen.getSelectedItem() == null ? 0
                     : contexto.sistema().cotizarComision(tipo, monto, Formato.idDe(origen.getSelectedItem()));
-            return "Comision: " + Formato.pesos(comision) + "  |  Puntos: " + CalculadoraPuntos.calcular(tipo, monto);
+            return "Comision: " + Formato.pesos(comision) + "  |  Puntos: " + contexto.sistema().getCalculadoraPuntos().calcular(tipo, monto);
         } catch (RuntimeException e) {
             return " ";
         }

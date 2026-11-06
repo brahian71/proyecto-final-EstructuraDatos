@@ -12,6 +12,7 @@ import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Rango;
 import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Transaccion;
+import monedero.servicio.CalculadoraPuntos;
 import monedero.servicio.ComisionEstandar;
 import monedero.servicio.Reloj;
 import monedero.servicio.SistemaMonedero;
@@ -308,7 +309,7 @@ public class PruebasFase3 {
         String m = principal(ana);
         s.depositar(m, 100_000, "x"); // 1000 pts
         s.canjear(ana.getId(), Beneficio.BONO_SALDO);
-        verificar("canje 1000: bono en el principal", s.consultarSaldo(m) == 100_000 + Beneficio.MONTO_BONO);
+        verificar("canje 1000: bono de 50 unidades", s.consultarSaldo(m) == 100_000 + 50);
         verificar("canje 1000: el bono no da puntos", ana.getPuntos() == 1000 && ana.getPuntosDisponibles() == 0);
         verificar("canje 1000: el bono no se puede revertir",
                 s.proximaReversible(ana.getId()).getTipo() == TipoTransaccion.DEPOSITO);
@@ -344,8 +345,7 @@ public class PruebasFase3 {
     // ------------------------------------------------------------------ arbol de clientes
 
     private static void rankingYRangos() {
-        SistemaMonedero s = nuevo();
-        DatosIniciales.cargar(s);
+        SistemaMonedero s = conDatosDeEjemplo();
         verificar("ranking: primero el de mas puntos", s.ranking(1).obtener(0).getNombre().equals("Diego Mora"));
         verificar("ranking: top 2", s.ranking(2).obtener(1).getNombre().equals("Ana Gomez"));
         verificar("rango: dos Bronce", s.clientesDeRango(Rango.BRONCE).tamanio() == 2);
@@ -367,10 +367,11 @@ public class PruebasFase3 {
     }
 
     private static void integridadConTodo() {
-        SistemaMonedero s = nuevo();
-        DatosIniciales.cargar(s);
+        SistemaMonedero s = conDatosDeEjemplo();
         String diego = "C004";
+        long antes = s.consultarSaldo("M004");
         s.canjear(diego, Beneficio.BONO_SALDO);
+        verificar("cop: bono de 50 unidades = $5.000", s.consultarSaldo("M004") == antes + 5_000);
         s.canjear("C001", Beneficio.DESCUENTO_TRANSFERENCIAS);
         s.revertirUltima("C003");
         var r = new VerificadorIntegridad(s).verificar();
@@ -383,7 +384,14 @@ public class PruebasFase3 {
     // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
-        return new SistemaMonedero(new Reloj(INICIO), new ComisionEstandar());
+        return new SistemaMonedero(new Reloj(INICIO), new ComisionEstandar(), CalculadoraPuntos.UNIDAD_UN_PESO);
+    }
+
+    /** Como corre el programa: pesos colombianos y comisiones reales, con los datos de ejemplo. */
+    private static SistemaMonedero conDatosDeEjemplo() {
+        SistemaMonedero s = new SistemaMonedero(new Reloj(INICIO), new ComisionEstandar(), CalculadoraPuntos.PESOS_COLOMBIANOS);
+        DatosIniciales.cargar(s);
+        return s;
     }
 
     private static String principal(Cliente cliente) {

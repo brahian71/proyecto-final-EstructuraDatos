@@ -75,7 +75,7 @@ Entrega estimada: mediados de noviembre de 2026.
 | 4 | Transacciones programadas recurrentes, recordatorios | Monticulo (cola de prioridad) | Hecha (30 oct) |
 | 5 | Patrones de gasto, transferencias entre clientes, multimonedero | Grafo dirigido (BFS, DFS), cola | Hecha (30 oct) |
 | 6 | Interfaz grafica (7 pestanias, grafo dibujado) | Swing | Hecha (1 nov) |
-| 7 | Ajustes a pesos colombianos, umbrales, datos de demostracion | - | 10 nov |
+| 7 | Ajustes a pesos colombianos (escala de puntos, bono, umbral), datos de demostracion | - | Hecha (3 nov) |
 | 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | 11 - 14 nov |
 
 Las decisiones de diseno y las preguntas abiertas estan en

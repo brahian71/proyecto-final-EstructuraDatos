@@ -9,6 +9,7 @@ import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
 import monedero.modelo.TipoMonedero;
 import monedero.servicio.AnalisisGastos;
+import monedero.servicio.CalculadoraPuntos;
 import monedero.servicio.FilaReporte;
 import monedero.servicio.PoliticaComision;
 import monedero.servicio.Reloj;
@@ -229,7 +230,8 @@ public class PruebasFase5 {
 
     /** Tres clientes con saldo; Ana tiene ademas un monedero de ahorros. */
     private static class Escenario {
-        final SistemaMonedero s = new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION);
+        final SistemaMonedero s = new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION,
+                CalculadoraPuntos.UNIDAD_UN_PESO);
         final AnalisisGastos analisis = new AnalisisGastos(s);
         final Cliente ana = s.registrarCliente("Ana");
         final Cliente bruno = s.registrarCliente("Bruno");

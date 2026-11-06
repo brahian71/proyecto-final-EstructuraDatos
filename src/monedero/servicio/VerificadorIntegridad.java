@@ -119,7 +119,7 @@ public class VerificadorIntegridad {
         if (t.getDestinoId() != null && !sistema.existeMonedero(t.getDestinoId())) {
             resultado.agregarError(t.getId() + ": el monedero destino " + t.getDestinoId() + " no existe");
         }
-        int esperados = CalculadoraPuntos.calcular(t.getTipo(), t.getMonto());
+        int esperados = sistema.getCalculadoraPuntos().calcular(t.getTipo(), t.getMonto());
         if (t.getPuntos() != esperados) {
             resultado.agregarError(t.getId() + ": tiene " + t.getPuntos() + " puntos y le corresponden " + esperados);
         }

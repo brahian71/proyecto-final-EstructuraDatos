@@ -14,9 +14,9 @@ import monedero.servicio.SistemaMonedero;
  * persistencia). Pasan por el servicio, asi que saldos, puntos e historial
  * quedan consistentes y la verificacion de integridad da OK.
  *
- * Montos pequenos a proposito: con 1 punto por cada 100 unidades, montos en
- * pesos reales (500.000) dejarian a todos en Oro/Platino. Asi quedan
- * clientes en Bronce, Plata y Oro para mostrar los rangos.
+ * Montos en pesos colombianos reales. Con la escala de puntos en pesos
+ * (unidad = $100, puntos por cada $10.000) quedan:
+ *   Diego Oro (1.200 pts), Ana Plata (556), Bruno Bronce (322), Carla Bronce (152).
  */
 public final class DatosIniciales {
 
@@ -35,34 +35,34 @@ public final class DatosIniciales {
         Monedero anaAhorros = sistema.crearMonedero(ana.getId(), "Ahorros", TipoMonedero.AHORROS);
         Monedero brunoGastos = sistema.crearMonedero(bruno.getId(), "Gastos diarios", TipoMonedero.GASTOS_DIARIOS);
 
-        sistema.depositar(anaPrincipal, 50_000, "Salario");
+        sistema.depositar(anaPrincipal, 4_500_000, "Salario");
         sistema.getReloj().avanzarDias(1);
-        sistema.depositar(brunoPrincipal, 30_000, "Pago freelance");
-        sistema.depositar(carlaPrincipal, 12_000, "Mesada");
-        sistema.depositar(principal(diego), 120_000, "Venta de moto");
-        sistema.getReloj().avanzarDias(1);
-
-        sistema.transferir(anaPrincipal, anaAhorros.getId(), 10_000, Categoria.AHORRO, "Ahorro del mes");
-        sistema.transferir(brunoPrincipal, brunoGastos.getId(), 8_000, Categoria.OTROS, "Plata de la semana");
+        sistema.depositar(brunoPrincipal, 2_800_000, "Pago freelance");
+        sistema.depositar(carlaPrincipal, 1_200_000, "Mesada");
+        sistema.depositar(principal(diego), 12_000_000, "Venta de moto");
         sistema.getReloj().avanzarDias(1);
 
-        sistema.retirar(anaPrincipal, 4_500, Categoria.ALIMENTACION, "Mercado");
-        sistema.retirar(brunoGastos.getId(), 1_200, Categoria.TRANSPORTE, "Recarga bus");
-        sistema.transferir(anaPrincipal, carlaPrincipal, 3_000, Categoria.EDUCACION, "Libros");
+        sistema.transferir(anaPrincipal, anaAhorros.getId(), 1_000_000, Categoria.AHORRO, "Ahorro del mes");
+        sistema.transferir(brunoPrincipal, brunoGastos.getId(), 600_000, Categoria.OTROS, "Plata de la semana");
         sistema.getReloj().avanzarDias(1);
 
-        sistema.transferir(carlaPrincipal, brunoPrincipal, 1_500, Categoria.ENTRETENIMIENTO, "Cine");
-        sistema.retirar(carlaPrincipal, 2_000, Categoria.SALUD, "Farmacia");
-        sistema.transferir(brunoGastos.getId(), anaPrincipal, 2_500, Categoria.ALIMENTACION, "Almuerzo compartido");
+        sistema.retirar(anaPrincipal, 350_000, Categoria.ALIMENTACION, "Mercado");
+        sistema.retirar(brunoGastos.getId(), 90_000, Categoria.TRANSPORTE, "Recarga tarjeta de bus");
+        sistema.transferir(anaPrincipal, carlaPrincipal, 120_000, Categoria.EDUCACION, "Libros");
+        sistema.getReloj().avanzarDias(1);
+
+        sistema.transferir(carlaPrincipal, brunoPrincipal, 60_000, Categoria.ENTRETENIMIENTO, "Cine");
+        sistema.retirar(carlaPrincipal, 75_000, Categoria.SALUD, "Farmacia");
+        sistema.transferir(brunoGastos.getId(), anaPrincipal, 85_000, Categoria.ALIMENTACION, "Almuerzo compartido");
 
         // programadas: se ejecutan al avanzar el reloj desde el menu
         var programador = sistema.getProgramador();
         var hoy = sistema.getReloj().ahora();
-        programador.programar(TipoTransaccion.TRANSFERENCIA, anaPrincipal, anaAhorros.getId(), 5_000,
+        programador.programar(TipoTransaccion.TRANSFERENCIA, anaPrincipal, anaAhorros.getId(), 300_000,
                 Categoria.AHORRO, "Ahorro mensual", Frecuencia.MENSUAL, hoy.plusDays(1), OperacionProgramada.SIN_LIMITE);
-        programador.programar(TipoTransaccion.DEPOSITO, null, principal(diego), 20_000, null,
+        programador.programar(TipoTransaccion.DEPOSITO, null, principal(diego), 1_500_000, null,
                 "Arriendo recibido", Frecuencia.MENSUAL, hoy.plusDays(5), 6);
-        programador.programar(TipoTransaccion.TRANSFERENCIA, brunoPrincipal, carlaPrincipal, 2_000,
+        programador.programar(TipoTransaccion.TRANSFERENCIA, brunoPrincipal, carlaPrincipal, 80_000,
                 Categoria.EDUCACION, "Clases de guitarra", Frecuencia.SEMANAL, hoy.plusDays(2), 4);
     }
 

@@ -11,6 +11,7 @@ import monedero.modelo.OperacionProgramada;
 import monedero.modelo.TipoNotificacion;
 import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Transaccion;
+import monedero.servicio.CalculadoraPuntos;
 import monedero.servicio.PoliticaComision;
 import monedero.servicio.ProgramadorTransacciones;
 import monedero.servicio.Reloj;
@@ -254,7 +255,7 @@ public class PruebasFase4 {
     // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
-        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION);
+        return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);
     }
 
     private static ProgramadorTransacciones prog(SistemaMonedero s) {
