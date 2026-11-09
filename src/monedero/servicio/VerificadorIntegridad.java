@@ -3,6 +3,7 @@ package monedero.servicio;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
 import monedero.modelo.MovimientoPuntos;
+import monedero.modelo.Rango;
 import monedero.modelo.Transaccion;
 
 /**
@@ -25,6 +26,7 @@ import monedero.modelo.Transaccion;
  *      tiene exactamente un nodo por cliente
  * Cola de programadas:
  *   9. cumple la propiedad de monticulo (cada padre <= sus hijos, recursivo)
+ *      y contiene exactamente las programadas que no han terminado
  *
  * Las transacciones revertidas siguen en el historial pero cuentan 0 en
  * saldo y puntos (efectoVigenteSobre / puntosVigentes).
@@ -55,6 +57,9 @@ public class VerificadorIntegridad {
         verificarArbolPuntos(clientes, resultado);
         if (!sistema.getProgramador().colaValida()) {
             resultado.agregarError("Cola de programadas: no cumple la propiedad de monticulo");
+        }
+        if (!sistema.getProgramador().colaConsistente()) {
+            resultado.agregarError("Cola de programadas: hay programadas activas fuera de la cola (o al reves)");
         }
         return resultado;
     }
@@ -119,9 +124,16 @@ public class VerificadorIntegridad {
         if (t.getDestinoId() != null && !sistema.existeMonedero(t.getDestinoId())) {
             resultado.agregarError(t.getId() + ": el monedero destino " + t.getDestinoId() + " no existe");
         }
-        int esperados = sistema.getCalculadoraPuntos().calcular(t.getTipo(), t.getMonto());
-        if (t.getPuntos() != esperados) {
-            resultado.agregarError(t.getId() + ": tiene " + t.getPuntos() + " puntos y le corresponden " + esperados);
+        // puntos = base de la regla + bono del rango; el bono solo en retiros y transferencias
+        // y nunca mayor que el del rango mas alto
+        int base = sistema.getCalculadoraPuntos().calcular(t.getTipo(), t.getMonto());
+        int bonoMaximo = t.getTipo().recibeBonoPorRango() ? Rango.PLATINO.bonoSobre(base) : 0;
+        if (t.getPuntos() - t.getBonoPuntos() != base) {
+            resultado.agregarError(t.getId() + ": tiene " + (t.getPuntos() - t.getBonoPuntos())
+                    + " puntos base y le corresponden " + base);
+        }
+        if (t.getBonoPuntos() > bonoMaximo) {
+            resultado.agregarError(t.getId() + ": bono de " + t.getBonoPuntos() + " puntos, el maximo es " + bonoMaximo);
         }
     }
 

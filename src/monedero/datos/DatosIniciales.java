@@ -16,7 +16,8 @@ import monedero.servicio.SistemaMonedero;
  *
  * Montos en pesos colombianos reales. Con la escala de puntos en pesos
  * (unidad = $100, puntos por cada $10.000) quedan:
- *   Diego Oro (1.200 pts), Ana Plata (556), Bruno Bronce (322), Carla Bronce (152).
+ *   Diego Oro (1.200 pts), Ana Plata (559, con 3 de bono por rango), Bruno Bronce (322),
+ *   Carla Bronce (152).
  */
 public final class DatosIniciales {
 

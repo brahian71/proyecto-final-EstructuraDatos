@@ -68,6 +68,7 @@ final class PanelHistorial extends JPanel implements Refrescable {
 
     private void llenarTabla() {
         Coleccion<Object[]> filas = ModeloTabla.nuevasFilas();
+        resumen.setText(" ");
         if (monedero.getSelectedItem() != null) {
             String id = Formato.idDe(monedero.getSelectedItem());
             int revertidas = 0;

@@ -2,6 +2,7 @@ package monedero.ui.gui;
 
 import monedero.estructuras.Coleccion;
 import monedero.modelo.Categoria;
+import monedero.modelo.Cliente;
 import monedero.modelo.Frecuencia;
 import monedero.modelo.OperacionProgramada;
 import monedero.modelo.TipoTransaccion;
@@ -58,6 +59,11 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         add(formulario(), BorderLayout.WEST);
 
         tipo.addActionListener(e -> habilitarCampos());
+        origen.addActionListener(e -> {
+            if (tipo.getSelectedItem() == TipoTransaccion.TRANSFERENCIA) {
+                llenarDestino();
+            }
+        });
         frecuencia.addActionListener(e -> habilitarCampos());
         habilitarCampos();
     }
@@ -106,13 +112,24 @@ final class PanelProgramadas extends JPanel implements Refrescable {
      */
     private void llenarDestino() {
         contexto.llenarMonederos(destino, tipo.getSelectedItem() != TipoTransaccion.DEPOSITO);
+        // en una transferencia, que no quede por defecto el mismo monedero de origen
+        if (tipo.getSelectedItem() == TipoTransaccion.TRANSFERENCIA && origen.getSelectedItem() != null
+                && origen.getSelectedItem().equals(destino.getSelectedItem())) {
+            for (int i = 0; i < destino.getItemCount(); i++) {
+                if (!destino.getItemAt(i).equals(origen.getSelectedItem())) {
+                    destino.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void programar() {
-        contexto.ejecutar(null, () -> {
+        OperacionProgramada[] hecha = new OperacionProgramada[1];
+        boolean bien = contexto.ejecutar(null, () -> {
             TipoTransaccion t = (TipoTransaccion) tipo.getSelectedItem();
             int cuantas = (Integer) veces.getValue();
-            OperacionProgramada op = contexto.sistema().getProgramador().programar(t,
+            hecha[0] = contexto.sistema().getProgramador().programar(t,
                     t == TipoTransaccion.DEPOSITO ? null : Formato.idDe(origen.getSelectedItem()),
                     t == TipoTransaccion.RETIRO ? null : Formato.idDe(destino.getSelectedItem()),
                     Formato.leerMonto(monto.getText()),
@@ -120,11 +137,13 @@ final class PanelProgramadas extends JPanel implements Refrescable {
                     descripcion.getText(), (Frecuencia) frecuencia.getSelectedItem(),
                     contexto.sistema().getReloj().ahora().plusDays((Integer) enDias.getValue()),
                     cuantas == 0 ? OperacionProgramada.SIN_LIMITE : cuantas);
+        });
+        if (bien) {
             monto.setText("");
             descripcion.setText("");
-            contexto.informar("Listo", "Programada " + op.getId() + ". Primera ejecucion: "
-                    + Formato.fecha(op.getProximaEjecucion()));
-        });
+            contexto.informar("Listo", "Programada " + hecha[0].getId() + ". Primera ejecucion: "
+                    + Formato.fecha(hecha[0].getProximaEjecucion()));
+        }
     }
 
     private void cancelar() {
@@ -134,6 +153,11 @@ final class PanelProgramadas extends JPanel implements Refrescable {
             return;
         }
         String id = (String) modelo.valor(tabla.convertRowIndexToModel(fila), 0);
+        Cliente actual = contexto.cliente();
+        if (actual == null || !contexto.sistema().getProgramador().buscar(id).getClienteId().equals(actual.getId())) {
+            contexto.informar("Programadas", "Solo puede cancelar las programadas del cliente actual.");
+            return;
+        }
         if (contexto.confirmar("Cancelar la transaccion programada " + id + "?")) {
             contexto.ejecutar("Programada " + id + " cancelada.", () -> contexto.sistema().getProgramador().cancelar(id));
         }

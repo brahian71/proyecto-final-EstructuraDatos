@@ -38,6 +38,8 @@ public class PruebasFase1 {
         depositoYSaldo();
         retiroSinSaldo();
         montoInvalido();
+        montoMaximo();
+        nombreVacioNoGastaId();
         transferenciaEntreClientes();
         movimientoInternoSinPuntos();
         monederoInexistente();
@@ -112,6 +114,29 @@ public class PruebasFase1 {
         String m = principal(s.registrarCliente("Ana"));
         lanza("monto: cero lanza", OperacionInvalidaException.class, () -> s.depositar(m, 0, "x"));
         lanza("monto: negativo lanza", OperacionInvalidaException.class, () -> s.depositar(m, -10, "x"));
+    }
+
+    private static void montoMaximo() {
+        SistemaMonedero s = nuevo();
+        String m = principal(s.registrarCliente("Ana"));
+        s.depositar(m, SistemaMonedero.MONTO_MAXIMO, "x");
+        verificar("monto: el maximo se acepta", s.consultarSaldo(m) == SistemaMonedero.MONTO_MAXIMO);
+        lanza("monto: mas del maximo lanza", OperacionInvalidaException.class,
+                () -> s.depositar(m, SistemaMonedero.MONTO_MAXIMO + 1, "x"));
+        lanza("monto: retiro mayor al maximo lanza", OperacionInvalidaException.class,
+                () -> s.retirar(m, 20_000_000_000_000L, Categoria.OTROS, "x"));
+        verificar("monto: nada cambio tras rechazar", s.cantidadTransacciones() == 1);
+    }
+
+    private static void nombreVacioNoGastaId() {
+        SistemaMonedero s = nuevo();
+        lanza("cliente: nombre vacio lanza", IllegalArgumentException.class, () -> s.registrarCliente("   "));
+        Cliente ana = s.registrarCliente("Ana");
+        verificar("cliente: el id no se salta", ana.getId().equals("C001") && principal(ana).equals("M001"));
+        lanza("monedero: nombre vacio lanza", IllegalArgumentException.class,
+                () -> s.crearMonedero(ana.getId(), "", TipoMonedero.AHORROS));
+        verificar("monedero: el id no se salta", s.crearMonedero(ana.getId(), "Ahorros", TipoMonedero.AHORROS)
+                .getId().equals("M002"));
     }
 
     private static void transferenciaEntreClientes() {

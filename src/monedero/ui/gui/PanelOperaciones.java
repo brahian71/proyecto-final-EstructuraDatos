@@ -117,32 +117,35 @@ final class PanelOperaciones extends JPanel implements Refrescable {
     // ------------------------------------------------------------------ acciones
 
     private void depositar() {
-        contexto.ejecutar(null, () -> {
-            Transaccion t = contexto.sistema().depositar(Formato.idDe(depositoDestino.getSelectedItem()),
-                    Formato.leerMonto(depositoMonto.getText()), depositoDescripcion.getText());
+        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
+        Transaccion[] hecha = new Transaccion[1];
+        if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().depositar(Formato.idDe(depositoDestino.getSelectedItem()),
+                    Formato.leerMonto(depositoMonto.getText()), depositoDescripcion.getText()))) {
             limpiar(depositoMonto, depositoDescripcion);
-            confirmarHecho(t);
-        });
+            confirmarHecho(hecha[0]);
+        }
     }
 
     private void retirar() {
-        contexto.ejecutar(null, () -> {
-            Transaccion t = contexto.sistema().retirar(Formato.idDe(retiroOrigen.getSelectedItem()),
+        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
+        Transaccion[] hecha = new Transaccion[1];
+        if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().retirar(Formato.idDe(retiroOrigen.getSelectedItem()),
                     Formato.leerMonto(retiroMonto.getText()), (Categoria) retiroCategoria.getSelectedItem(),
-                    retiroDescripcion.getText());
+                    retiroDescripcion.getText()))) {
             limpiar(retiroMonto, retiroDescripcion);
-            confirmarHecho(t);
-        });
+            confirmarHecho(hecha[0]);
+        }
     }
 
     private void transferir() {
-        contexto.ejecutar(null, () -> {
-            Transaccion t = contexto.sistema().transferir(Formato.idDe(transferenciaOrigen.getSelectedItem()),
+        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
+        Transaccion[] hecha = new Transaccion[1];
+        if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().transferir(Formato.idDe(transferenciaOrigen.getSelectedItem()),
                     Formato.idDe(transferenciaDestino.getSelectedItem()), Formato.leerMonto(transferenciaMonto.getText()),
-                    (Categoria) transferenciaCategoria.getSelectedItem(), transferenciaDescripcion.getText());
+                    (Categoria) transferenciaCategoria.getSelectedItem(), transferenciaDescripcion.getText()))) {
             limpiar(transferenciaMonto, transferenciaDescripcion);
-            confirmarHecho(t);
-        });
+            confirmarHecho(hecha[0]);
+        }
     }
 
     private void revertir() {
@@ -165,12 +168,17 @@ final class PanelOperaciones extends JPanel implements Refrescable {
 
     // ------------------------------------------------------------------ cotizacion
 
+    /** Se llama al escribir o cambiar un combo: nunca debe lanzar excepciones. */
     private void cotizar() {
-        depositoCotizacion.setText(textoCotizacion(TipoTransaccion.DEPOSITO, depositoMonto, null));
-        retiroCotizacion.setText(textoCotizacion(TipoTransaccion.RETIRO, retiroMonto, retiroOrigen));
-        TipoTransaccion tipo = esMovimientoInterno() ? TipoTransaccion.MOVIMIENTO_INTERNO : TipoTransaccion.TRANSFERENCIA;
-        transferenciaCotizacion.setText(textoCotizacion(tipo, transferenciaMonto, transferenciaOrigen)
-                + (tipo == TipoTransaccion.MOVIMIENTO_INTERNO ? " (entre tus monederos)" : ""));
+        try {
+            depositoCotizacion.setText(textoCotizacion(TipoTransaccion.DEPOSITO, depositoMonto, null));
+            retiroCotizacion.setText(textoCotizacion(TipoTransaccion.RETIRO, retiroMonto, retiroOrigen));
+            TipoTransaccion tipo = esMovimientoInterno() ? TipoTransaccion.MOVIMIENTO_INTERNO : TipoTransaccion.TRANSFERENCIA;
+            transferenciaCotizacion.setText(textoCotizacion(tipo, transferenciaMonto, transferenciaOrigen)
+                    + (tipo == TipoTransaccion.MOVIMIENTO_INTERNO ? " (entre tus monederos)" : ""));
+        } catch (RuntimeException e) {
+            transferenciaCotizacion.setText(" ");
+        }
     }
 
     private String textoCotizacion(TipoTransaccion tipo, JTextField campoMonto, JComboBox<String> origen) {
@@ -178,7 +186,9 @@ final class PanelOperaciones extends JPanel implements Refrescable {
             long monto = Formato.leerMonto(campoMonto.getText());
             long comision = origen == null || origen.getSelectedItem() == null ? 0
                     : contexto.sistema().cotizarComision(tipo, monto, Formato.idDe(origen.getSelectedItem()));
-            return "Comision: " + Formato.pesos(comision) + "  |  Puntos: " + contexto.sistema().getCalculadoraPuntos().calcular(tipo, monto);
+            return "Comision: " + Formato.pesos(comision) + "  |  Puntos: " + (origen == null || origen.getSelectedItem() == null
+                    ? contexto.sistema().getCalculadoraPuntos().calcular(tipo, monto)
+                    : contexto.sistema().cotizarPuntos(tipo, monto, Formato.idDe(origen.getSelectedItem())));
         } catch (RuntimeException e) {
             return " ";
         }

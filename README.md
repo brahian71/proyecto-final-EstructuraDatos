@@ -78,5 +78,10 @@ Entrega estimada: mediados de noviembre de 2026.
 | 7 | Ajustes a pesos colombianos (escala de puntos, bono, umbral), datos de demostracion | - | Hecha (3 nov) |
 | 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | 11 - 14 nov |
 
-Las decisiones de diseno y las preguntas abiertas estan en
-[docs/decisiones.md](docs/decisiones.md).
+## Documentos
+
+- [docs/decisiones.md](docs/decisiones.md): decisiones de diseno y preguntas abiertas.
+- [docs/sustentacion.md](docs/sustentacion.md): guion de demostracion y preguntas probables.
+- `docs/informe/`: informe tecnico en Word (el `.docx` no se sube al repositorio) y
+  `generar-informe.js`, que lo genera (`npm install docx` y `node generar-informe.js <proyecto> <salida.docx>`).
+- `docs/capturas/`: imagenes de cada pestania de la interfaz.

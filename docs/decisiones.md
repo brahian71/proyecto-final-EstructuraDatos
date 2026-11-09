@@ -141,6 +141,26 @@ Sirven de base para el informe tecnico.
 44. **Datos de demostracion en pesos reales** (salarios, arriendo, mercado),
     elegidos para que haya clientes en Bronce, Plata y Oro.
 
+45. **Bono de puntos por rango** ("bonos de puntos adicionales por ciertas
+    transacciones" del enunciado): Plata +10 %, Oro +20 %, Platino +30 % sobre
+    los puntos base, solo en retiros y transferencias (premia usar el monedero,
+    no solo guardar). Se usa el rango que el cliente tenia antes de esa
+    transaccion. La transaccion guarda cuanto fue bono; al revertir se quita
+    todo. La integridad comprueba que puntos - bono == regla base y que el bono
+    no supere el del rango mas alto.
+
+46. **Monto maximo por transaccion: $1.000.000.000.** Es un limite razonable
+    y evita que los puntos (int) se desborden. Tambien aplica a las programadas.
+47. **Una programada que falla por cualquier motivo cuenta como ejecucion
+    fallida** y avisa con una notificacion `FALLO_PROGRAMADA`; nunca se pierde
+    de la cola. La integridad comprueba que la cola tenga exactamente las
+    programadas activas.
+48. **No se puede programar una transferencia al mismo monedero** (todas sus
+    ejecuciones fallarian).
+49. **Los montos en la interfaz son pesos enteros**: se aceptan "12500" y
+    "12.500" (puntos de miles); se rechazan decimales como "12.5" o "12,50"
+    para que no se lean como otro numero.
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`

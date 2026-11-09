@@ -103,7 +103,7 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         comboCliente.setPreferredSize(new Dimension(220, 28));
         comboCliente.addActionListener(e -> {
             if (!llenandoCombo && comboCliente.getSelectedItem() != null) {
-                contexto.seleccionarCliente(Formato.idDe(comboCliente.getSelectedItem()));
+                contexto.conManejo(() -> contexto.seleccionarCliente(Formato.idDe(comboCliente.getSelectedItem())));
             }
         });
         derecha.add(comboCliente);
@@ -117,14 +117,16 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         avanzar.setToolTipText("Mueve el reloj simulado y ejecuta las transacciones programadas que venzan");
         avanzar.addActionListener(e -> {
             int[] procesadas = new int[1];
-            contexto.ejecutar(null, () -> procesadas[0] = contexto.sistema().avanzarDias((Integer) dias.getValue()));
-            contexto.informar("Reloj simulado", "Fecha actual: " + Formato.fecha(contexto.sistema().getReloj().ahora())
-                    + "\nTransacciones programadas ejecutadas: " + procesadas[0]);
+            if (contexto.ejecutar(null, () -> procesadas[0] = contexto.sistema().avanzarDias((Integer) dias.getValue()))) {
+                contexto.informar("Reloj simulado", "Fecha actual: " + Formato.fecha(contexto.sistema().getReloj().ahora())
+                        + "\nTransacciones programadas procesadas: " + procesadas[0]
+                        + (procesadas[0] > 0 ? "\n(las que no se pudieron hacer aparecen en las notificaciones)" : ""));
+            }
         });
         derecha.add(avanzar);
 
         JButton integridad = new JButton("Verificar integridad");
-        integridad.addActionListener(e -> mostrarIntegridad());
+        integridad.addActionListener(e -> contexto.conManejo(this::mostrarIntegridad));
         derecha.add(integridad);
 
         barra.add(derecha, BorderLayout.EAST);

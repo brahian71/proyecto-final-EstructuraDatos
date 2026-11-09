@@ -28,7 +28,7 @@ final class PanelPuntos extends JPanel implements Refrescable {
     private final JButton[] botonesCanje = new JButton[Beneficio.values().length];
     private final ModeloTabla historial = new ModeloTabla("Fecha", "Movimiento", "Puntos", "Detalle", "Disponibles");
     private final ModeloTabla ranking = new ModeloTabla("#", "Cliente", "Puntos", "Rango");
-    private final ModeloTabla porRango = new ModeloTabla("Rango", "Puntos", "Descuento transf.", "Clientes");
+    private final ModeloTabla porRango = new ModeloTabla("Rango", "Puntos", "Desc. transf.", "Bono puntos", "Clientes");
     private final JLabel datosArbol = new JLabel(" ");
 
     PanelPuntos(Contexto contexto) {
@@ -113,7 +113,8 @@ final class PanelPuntos extends JPanel implements Refrescable {
                 nombres.append(nombres.length() == 0 ? "" : ", ").append(cliente.getNombre());
             }
             String limites = r == Rango.PLATINO ? "mas de 5000" : r.getPuntosMinimos() + " - " + r.getPuntosMaximos();
-            filasRango.agregar(new Object[]{r, limites, r.getDescuentoTransferencia() + " %", nombres.toString()});
+            filasRango.agregar(new Object[]{r, limites, r.getDescuentoTransferencia() + " %",
+                    "+" + r.getBonoPuntos() + " %", nombres.toString()});
         }
         porRango.setFilas(filasRango);
 

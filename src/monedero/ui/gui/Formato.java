@@ -37,16 +37,24 @@ final class Formato {
         return fecha == null ? "" : fecha.format(FECHA_HORA);
     }
 
-    /** Lee un monto escrito con o sin puntos de miles ("12.500" o "12500"). */
+    /**
+     * Lee un monto entero en pesos, con o sin puntos de miles: "12500",
+     * "12.500", "$1.250.000". Rechaza decimales ("12.5" o "12,50"): con
+     * puntos de miles, "12.5" se leeria como 125 sin que el usuario lo note.
+     */
     static long leerMonto(String texto) {
-        String limpio = texto == null ? "" : texto.replace(".", "").replace("$", "").replace(" ", "").trim();
+        String limpio = texto == null ? "" : texto.replace("$", "").replace(" ", "").trim();
         if (limpio.isEmpty()) {
             throw new IllegalArgumentException("Escriba un monto");
         }
+        if (!limpio.matches("\\d{1,3}(\\.\\d{3})+|\\d+")) {
+            throw new IllegalArgumentException("Monto no valido: " + texto.trim()
+                    + ". Use pesos enteros, por ejemplo 12500 o 12.500");
+        }
         try {
-            return Long.parseLong(limpio);
+            return Long.parseLong(limpio.replace(".", ""));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Monto no valido: " + texto);
+            throw new IllegalArgumentException("Monto demasiado grande: " + texto.trim());
         }
     }
 

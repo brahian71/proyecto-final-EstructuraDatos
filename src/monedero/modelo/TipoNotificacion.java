@@ -6,6 +6,8 @@ public enum TipoNotificacion {
     CAMBIO_RANGO,
     REVERSION,
     CANJE,
-    /** Para las transacciones programadas (fase 4). */
-    RECORDATORIO
+    /** Una transaccion programada se ejecuta pronto. */
+    RECORDATORIO,
+    /** Una transaccion programada no se pudo ejecutar. */
+    FALLO_PROGRAMADA
 }

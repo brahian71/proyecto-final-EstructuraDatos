@@ -6,7 +6,6 @@ import monedero.estructuras.MonticuloBinario;
 import monedero.estructuras.TablaHash;
 import monedero.excepciones.NoEncontradoException;
 import monedero.excepciones.OperacionInvalidaException;
-import monedero.excepciones.SaldoInsuficienteException;
 import monedero.modelo.Categoria;
 import monedero.modelo.Frecuencia;
 import monedero.modelo.Monedero;
@@ -56,8 +55,9 @@ public class ProgramadorTransacciones {
     public OperacionProgramada programar(TipoTransaccion tipo, String origenId, String destinoId, long monto,
                                          Categoria categoria, String descripcion, Frecuencia frecuencia,
                                          LocalDateTime inicio, int ejecuciones) {
-        if (monto <= 0) {
-            throw new OperacionInvalidaException("El monto debe ser mayor que cero: " + monto);
+        SistemaMonedero.validarMonto(monto);
+        if (inicio == null) {
+            throw new OperacionInvalidaException("Falta la fecha de la primera ejecucion");
         }
         if (inicio.isBefore(sistema.getReloj().ahora())) {
             throw new OperacionInvalidaException("La primera ejecucion no puede ser en el pasado: " + inicio);
@@ -66,6 +66,10 @@ public class ProgramadorTransacciones {
         Monedero duenio = sistema.buscarMonedero(tipo == TipoTransaccion.DEPOSITO ? destinoId : origenId);
         if (tipo == TipoTransaccion.TRANSFERENCIA) {
             sistema.buscarMonedero(destinoId);
+            if (origenId.equals(destinoId)) {
+                // si no, todas sus ejecuciones fallarian
+                throw new OperacionInvalidaException("No se puede programar una transferencia al mismo monedero");
+            }
         }
         OperacionProgramada op = new OperacionProgramada(String.format("P%03d", ++consecutivo), ++secuencia,
                 duenio.getClienteId(), tipo, tipo == TipoTransaccion.DEPOSITO ? null : origenId,
@@ -125,6 +129,20 @@ public class ProgramadorTransacciones {
     }
 
     /** Propiedad de monticulo (la usa la integridad). */
+    /**
+     * Toda programada que no ha terminado debe estar en la cola, y solo esas
+     * (la usa la integridad). O(n).
+     */
+    public boolean colaConsistente() {
+        int activas = 0;
+        for (OperacionProgramada op : porId.valores()) {
+            if (!op.terminada()) {
+                activas++;
+            }
+        }
+        return activas == cola.tamanio();
+    }
+
     public boolean colaValida() {
         return cola.esValido();
     }
@@ -142,8 +160,10 @@ public class ProgramadorTransacciones {
                 default -> throw new IllegalStateException("Tipo no programable: " + op.getTipo());
             }
             return true;
-        } catch (SaldoInsuficienteException | OperacionInvalidaException | NoEncontradoException e) {
-            sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.RECORDATORIO,
+        } catch (RuntimeException e) {
+            // cualquier falla cuenta como ejecucion fallida: la operacion ya salio de la cola y,
+            // si la excepcion escapara, no volveria a entrar y se perderia
+            sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.FALLO_PROGRAMADA,
                     "No se pudo ejecutar " + op.getId() + " (" + op.getTipo() + " $" + op.getMonto() + "): "
                             + e.getMessage(), sistema.getReloj().ahora());
             return false;

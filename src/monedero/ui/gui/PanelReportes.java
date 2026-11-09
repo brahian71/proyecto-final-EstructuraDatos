@@ -72,9 +72,14 @@ final class PanelReportes extends JPanel implements Refrescable {
         if (actual == null) {
             return;
         }
+        if (reporte.getSelectedIndex() == 4 && otroCliente.getItemCount() == 0) {
+            contexto.informar("Reportes", "Registre otro cliente para ver como esta conectado con " + actual.getNombre() + ".");
+            return;
+        }
+        // un reporte solo consulta: no se usa ejecutar(), que refrescaria todo y borraria el resaltado
         AnalisisGastos analisis = new AnalisisGastos(contexto.sistema());
-        dibujo.mostrar(analisis.grafoTransferencias(), id -> contexto.sistema().buscarCliente(id).getNombre());
-        contexto.ejecutar(null, () -> {
+        contexto.conManejo(() -> {
+            dibujo.mostrar(analisis.grafoTransferencias(), id -> contexto.sistema().buscarCliente(id).getNombre());
             switch (reporte.getSelectedIndex()) {
                 case 0 -> tabla(analisis.gastoPorCategoria(actual.getId()),
                         "Gasto de " + actual.getNombre() + " por categoria (retiros y transferencias a otros clientes).");
@@ -147,6 +152,9 @@ final class PanelReportes extends JPanel implements Refrescable {
         if (antes != null) {
             otroCliente.setSelectedItem(antes);
         }
+        // los datos cambiaron (u otro cliente): el resultado anterior ya no aplica
+        modelo.setFilas(ModeloTabla.nuevasFilas());
+        explicacion.setText("Elija un reporte y pulse Generar.");
         dibujo.mostrar(new AnalisisGastos(contexto.sistema()).grafoTransferencias(),
                 id -> contexto.sistema().buscarCliente(id).getNombre());
     }

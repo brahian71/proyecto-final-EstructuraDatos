@@ -50,6 +50,8 @@ public class PruebasFase4 {
         cancelar();
         recordatorioUnDiaAntes();
         noProgramarEnElPasado();
+        noProgramarTransferenciaAlMismoMonedero();
+        colaConsistente();
         integridadDespuesDeProgramadas();
 
         System.out.println("\nResultado: " + exitos + " OK, " + fallos + " FALLO");
@@ -239,6 +241,29 @@ public class PruebasFase4 {
                 null, m, 100, null, "x", Frecuencia.UNA_VEZ, INICIO.minusDays(1), 1));
         lanza("monto cero: lanza", OperacionInvalidaException.class, () -> prog(s).programar(TipoTransaccion.DEPOSITO,
                 null, m, 0, null, "x", Frecuencia.UNA_VEZ, INICIO, 1));
+    }
+
+    private static void noProgramarTransferenciaAlMismoMonedero() {
+        SistemaMonedero s = nuevo();
+        String m = principal(s.registrarCliente("Ana"));
+        lanza("programar: transferencia al mismo monedero lanza", OperacionInvalidaException.class,
+                () -> prog(s).programar(TipoTransaccion.TRANSFERENCIA, m, m, 100, Categoria.OTROS, "x",
+                        Frecuencia.SEMANAL, INICIO, 3));
+        lanza("programar: monto mayor al maximo lanza", OperacionInvalidaException.class,
+                () -> prog(s).programar(TipoTransaccion.DEPOSITO, null, m, SistemaMonedero.MONTO_MAXIMO + 1, null, "x",
+                        Frecuencia.UNA_VEZ, INICIO, 1));
+        verificar("programar: no quedo nada en la cola", prog(s).cantidadPendientes() == 0);
+    }
+
+    private static void colaConsistente() {
+        SistemaMonedero s = nuevo();
+        String m = principal(s.registrarCliente("Ana"));
+        OperacionProgramada a = prog(s).programar(TipoTransaccion.DEPOSITO, null, m, 100, null, "x",
+                Frecuencia.DIARIA, INICIO.plusDays(1), 2);
+        prog(s).programar(TipoTransaccion.DEPOSITO, null, m, 100, null, "x", Frecuencia.SEMANAL, INICIO.plusDays(1), 5);
+        prog(s).cancelar(a.getId());
+        s.avanzarDias(20);
+        verificar("cola: consistente con las programadas activas", prog(s).colaConsistente());
     }
 
     private static void integridadDespuesDeProgramadas() {

@@ -34,4 +34,9 @@ public enum TipoTransaccion {
     public boolean requiereDestino() {
         return this != RETIRO;
     }
+
+    /** El bono de puntos del rango premia el uso (pagar, transferir), no guardar dinero. */
+    public boolean recibeBonoPorRango() {
+        return this == RETIRO || this == TRANSFERENCIA;
+    }
 }

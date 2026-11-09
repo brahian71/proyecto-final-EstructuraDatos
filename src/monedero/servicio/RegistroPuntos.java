@@ -35,8 +35,12 @@ public class RegistroPuntos {
             return;
         }
         arbol.eliminar(clave(cliente));
-        cliente.ganarPuntos(cantidad, fecha, detalle);
-        arbol.insertar(clave(cliente), cliente);
+        try {
+            cliente.ganarPuntos(cantidad, fecha, detalle);
+        } finally {
+            // pase lo que pase, el cliente vuelve al arbol con sus puntos actuales
+            arbol.insertar(clave(cliente), cliente);
+        }
     }
 
     public void perder(Cliente cliente, int cantidad, LocalDateTime fecha, String detalle) {

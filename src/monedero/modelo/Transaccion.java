@@ -29,11 +29,23 @@ public class Transaccion {
     private final LocalDateTime fecha;
     private final String descripcion;
     private final int puntos;
+    private final int bonoPuntos;
     private LocalDateTime fechaReversion;
 
+    /** Sin bono de rango. */
     public Transaccion(String id, TipoTransaccion tipo, long monto, long comision,
                        String origenId, String destinoId, Categoria categoria,
                        LocalDateTime fecha, String descripcion, int puntos) {
+        this(id, tipo, monto, comision, origenId, destinoId, categoria, fecha, descripcion, puntos, 0);
+    }
+
+    /**
+     * @param puntos     total de puntos que da (base + bono)
+     * @param bonoPuntos parte de esos puntos que viene del bono del rango
+     */
+    public Transaccion(String id, TipoTransaccion tipo, long monto, long comision,
+                       String origenId, String destinoId, Categoria categoria,
+                       LocalDateTime fecha, String descripcion, int puntos, int bonoPuntos) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("El id no puede ser nulo ni vacio");
         }
@@ -44,6 +56,9 @@ public class Transaccion {
         }
         if (comision < 0) {
             throw new IllegalArgumentException("La comision no puede ser negativa: " + comision);
+        }
+        if (bonoPuntos < 0 || bonoPuntos > puntos) {
+            throw new IllegalArgumentException("El bono debe estar entre 0 y los puntos: " + bonoPuntos);
         }
         if (puntos < 0) {
             throw new IllegalArgumentException("Los puntos no pueden ser negativos: " + puntos);
@@ -68,6 +83,7 @@ public class Transaccion {
         this.fecha = fecha;
         this.descripcion = descripcion == null ? "" : descripcion.trim();
         this.puntos = puntos;
+        this.bonoPuntos = bonoPuntos;
     }
 
     /**
@@ -154,6 +170,11 @@ public class Transaccion {
         return descripcion;
     }
 
+    /** Parte de los puntos que vino del bono del rango. */
+    public int getBonoPuntos() {
+        return bonoPuntos;
+    }
+
     public int getPuntos() {
         return puntos;
     }
@@ -179,7 +200,8 @@ public class Transaccion {
         return id + " " + tipo + " $" + monto
                 + (comision > 0 ? " (+com $" + comision + ")" : "")
                 + " " + (origenId == null ? "-" : origenId) + " -> " + (destinoId == null ? "-" : destinoId)
-                + " [" + categoria + "] +" + puntos + "pts " + fecha.toLocalDate()
+                + " [" + categoria + "] +" + puntos + "pts" + (bonoPuntos > 0 ? " (" + bonoPuntos + " de bono)" : "")
+                + " " + fecha.toLocalDate()
                 + (isRevertida() ? "  [REVERTIDA " + fechaReversion.toLocalDate() + "]" : "");
     }
 }

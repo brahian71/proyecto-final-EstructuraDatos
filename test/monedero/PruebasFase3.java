@@ -59,6 +59,9 @@ public class PruebasFase3 {
         noRevertirSiPuntosCanjeados();
         historialPuntosCuadra();
 
+        bonoPorRango();
+        bonoNoEnDepositos();
+        bonoSeQuitaAlRevertir();
         rankingYRangos();
         arbolSigueAlCambiarPuntos();
         integridadConTodo();
@@ -340,6 +343,46 @@ public class PruebasFase3 {
         }
         verificar("historial puntos: ganar, canjear, ganar, revertir", tipos.toString().equals("GCGR"));
         verificar("historial puntos: suma = disponibles", suma == ana.getPuntosDisponibles() && suma == 400);
+    }
+
+    // ------------------------------------------------------------------ bono de puntos por rango
+
+    private static void bonoPorRango() {
+        SistemaMonedero s = nuevo();
+        Cliente ana = s.registrarCliente("Ana");
+        Cliente bruno = s.registrarCliente("Bruno");
+        String a = principal(ana);
+        s.depositar(a, 20_000, "x"); // 200 pts: Bronce
+        Transaccion bronce = s.retirar(a, 1_000, Categoria.OTROS, "x");
+        verificar("bono: Bronce no tiene", bronce.getPuntos() == 20 && bronce.getBonoPuntos() == 0);
+        s.depositar(a, 40_000, "x"); // 620 pts: Plata
+        long cotizados = s.cotizarPuntos(TipoTransaccion.TRANSFERENCIA, 1_000, a);
+        Transaccion plata = s.transferir(a, principal(bruno), 1_000, Categoria.OTROS, "x");
+        verificar("bono: Plata +10 % (30 base + 3)", plata.getPuntos() == 33 && plata.getBonoPuntos() == 3);
+        verificar("bono: la cotizacion coincide", cotizados == 33);
+        s.depositar(a, 50_000, "x"); // 1153 pts: Oro
+        Transaccion oro = s.retirar(a, 1_000, Categoria.OTROS, "x");
+        verificar("bono: Oro +20 % (20 base + 4)", oro.getPuntos() == 24 && oro.getBonoPuntos() == 4);
+        verificar("bono: integridad OK", new VerificadorIntegridad(s).verificar().esValido());
+    }
+
+    private static void bonoNoEnDepositos() {
+        SistemaMonedero s = nuevo();
+        Cliente ana = s.registrarCliente("Ana");
+        s.depositar(principal(ana), 600_000, "x"); // Platino
+        Transaccion t = s.depositar(principal(ana), 1_000, "x");
+        verificar("bono: los depositos no tienen", ana.getRango() == Rango.PLATINO && t.getBonoPuntos() == 0);
+    }
+
+    private static void bonoSeQuitaAlRevertir() {
+        SistemaMonedero s = nuevo();
+        Cliente ana = s.registrarCliente("Ana");
+        Cliente bruno = s.registrarCliente("Bruno");
+        s.depositar(principal(ana), 60_000, "x"); // 600 pts: Plata
+        s.transferir(principal(ana), principal(bruno), 10_000, Categoria.OTROS, "x"); // 300 + 30
+        verificar("bono: suma base + bono", ana.getPuntos() == 930);
+        s.revertirUltima(ana.getId());
+        verificar("bono: revertir quita tambien el bono", ana.getPuntos() == 600);
     }
 
     // ------------------------------------------------------------------ arbol de clientes

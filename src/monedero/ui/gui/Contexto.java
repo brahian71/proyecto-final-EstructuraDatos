@@ -115,19 +115,37 @@ final class Contexto {
      * Ejecuta una accion del usuario: si funciona refresca todo y muestra el
      * mensaje de exito (si hay); si falla muestra el error de negocio
      * (saldo insuficiente, monto invalido...) sin cerrar nada.
+     *
+     * La accion y el refresco se manejan por separado: si la accion ya se hizo
+     * y solo falla el refresco, no se le dice al usuario que la operacion fallo.
+     * @return true si la accion se hizo
      */
     boolean ejecutar(String exito, Runnable accion) {
         try {
             accion.run();
-            refrescarTodo();
-            if (exito != null) {
-                JOptionPane.showMessageDialog(ventana, exito, "Listo", JOptionPane.INFORMATION_MESSAGE);
-            }
-            return true;
         } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(ventana, e.getMessage(), "No se pudo completar", JOptionPane.ERROR_MESSAGE);
+            error(e.getMessage());
             return false;
         }
+        conManejo(this::refrescarTodo);
+        if (exito != null) {
+            JOptionPane.showMessageDialog(ventana, exito, "Listo", JOptionPane.INFORMATION_MESSAGE);
+        }
+        return true;
+    }
+
+    /** Para acciones que no cambian datos (consultas) y para los listeners: muestra el error en vez de perderlo. */
+    void conManejo(Runnable accion) {
+        try {
+            accion.run();
+        } catch (RuntimeException e) {
+            error(e.getMessage());
+        }
+    }
+
+    void error(String mensaje) {
+        JOptionPane.showMessageDialog(ventana, mensaje == null ? "Error inesperado" : mensaje,
+                "No se pudo completar", JOptionPane.ERROR_MESSAGE);
     }
 
     boolean confirmar(String pregunta) {

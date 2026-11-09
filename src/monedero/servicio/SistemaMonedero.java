@@ -40,6 +40,13 @@ public class SistemaMonedero {
      */
     public static final long UNIDADES_SALDO_BAJO = 500;
 
+    /**
+     * Monto maximo por transaccion ($1.000 millones). Ademas de ser un limite
+     * razonable para un monedero, evita que los puntos (int) se desborden:
+     * una transaccion da como maximo 300.000 puntos base.
+     */
+    public static final long MONTO_MAXIMO = 1_000_000_000L;
+
     private final Mapa<String, Cliente> clientes = new TablaHash<>();
     private final Mapa<String, Monedero> monederos = new TablaHash<>();
     private final Coleccion<Transaccion> transacciones = new ListaEnlazada<>();
@@ -79,7 +86,9 @@ public class SistemaMonedero {
 
     /** Crea el cliente con un monedero PRINCIPAL. */
     public Cliente registrarCliente(String nombre) {
-        Cliente cliente = new Cliente(String.format("C%03d", ++consecutivoCliente), nombre);
+        // el consecutivo solo avanza si el cliente es valido (un nombre vacio no gasta un id)
+        Cliente cliente = new Cliente(String.format("C%03d", consecutivoCliente + 1), nombre);
+        consecutivoCliente++;
         clientes.poner(cliente.getId(), cliente);
         registroPuntos.agregar(cliente);
         crearMonedero(cliente.getId(), "Principal", TipoMonedero.PRINCIPAL);
@@ -88,7 +97,8 @@ public class SistemaMonedero {
 
     public Monedero crearMonedero(String clienteId, String nombre, TipoMonedero tipo) {
         Cliente cliente = buscarCliente(clienteId);
-        Monedero monedero = new Monedero(String.format("M%03d", ++consecutivoMonedero), clienteId, nombre, tipo);
+        Monedero monedero = new Monedero(String.format("M%03d", consecutivoMonedero + 1), clienteId, nombre, tipo);
+        consecutivoMonedero++;
         cliente.agregarMonedero(monedero);
         monederos.poner(monedero.getId(), monedero);
         return monedero;
@@ -286,6 +296,12 @@ public class SistemaMonedero {
         return registroPuntos;
     }
 
+    /** Puntos (base + bono del rango) que daria hoy; la interfaz los muestra antes de confirmar. */
+    public int cotizarPuntos(TipoTransaccion tipo, long monto, String monederoOrigenId) {
+        int base = calculadoraPuntos.calcular(tipo, monto);
+        return base + bonoPorRango(tipo, base, monederoOrigenId);
+    }
+
     /** Comision que se cobraria hoy; la interfaz la muestra antes de confirmar. */
     public long cotizarComision(TipoTransaccion tipo, long monto, String monederoOrigenId) {
         return calcularComision(tipo, monto, buscarMonedero(monederoOrigenId));
@@ -359,10 +375,23 @@ public class SistemaMonedero {
 
     private Transaccion crearTransaccion(TipoTransaccion tipo, long monto, long comision, String origenId,
                                          String destinoId, Categoria categoria, String descripcion) {
-        int puntos = calculadoraPuntos.calcular(tipo, monto);
+        int base = calculadoraPuntos.calcular(tipo, monto);
+        int bono = bonoPorRango(tipo, base, origenId);
         String id = String.format("T%04d", ++consecutivoTransaccion);
         return new Transaccion(id, tipo, monto, comision, origenId, destinoId, categoria,
-                reloj.ahora(), descripcion, puntos);
+                reloj.ahora(), descripcion, base + bono, bono);
+    }
+
+    /**
+     * Puntos extra segun el rango de quien paga (Plata 10 %, Oro 20 %,
+     * Platino 30 %), solo en retiros y transferencias. Se usa el rango que
+     * tenia ANTES de esta transaccion.
+     */
+    private int bonoPorRango(TipoTransaccion tipo, int base, String origenId) {
+        if (!tipo.recibeBonoPorRango() || origenId == null) {
+            return 0;
+        }
+        return buscarCliente(buscarMonedero(origenId).getClienteId()).getRango().bonoSobre(base);
     }
 
     private Transaccion registrar(Transaccion t, String clienteId) {
@@ -392,9 +421,13 @@ public class SistemaMonedero {
         }
     }
 
-    private static void validarMonto(long monto) {
+    /** Lo usa tambien el programador antes de aceptar una programada. */
+    static void validarMonto(long monto) {
         if (monto <= 0) {
             throw new OperacionInvalidaException("El monto debe ser mayor que cero: " + monto);
+        }
+        if (monto > MONTO_MAXIMO) {
+            throw new OperacionInvalidaException("El monto maximo por transaccion es $1.000.000.000");
         }
     }
 
