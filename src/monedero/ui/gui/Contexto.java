@@ -5,6 +5,7 @@ import monedero.estructuras.Coleccion;
 import monedero.estructuras.ListaEnlazada;
 import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
+import monedero.modelo.Usuario;
 import monedero.servicio.SistemaMonedero;
 
 import javax.swing.BorderFactory;
@@ -24,14 +25,32 @@ import java.awt.Font;
 final class Contexto {
 
     private final SistemaMonedero sistema;
+    private final Usuario usuario;
     private final Coleccion<Refrescable> vistas = new ListaEnlazada<>();
     private JFrame ventana;
     private String clienteActual;
 
-    Contexto(SistemaMonedero sistema) {
+    /**
+     * Un cliente siempre trabaja con su propio cliente; el administrador
+     * empieza con el primero y puede cambiar.
+     */
+    Contexto(SistemaMonedero sistema, Usuario usuario) {
         this.sistema = sistema;
-        Cliente primero = clientesOrdenados().estaVacia() ? null : clientesOrdenados().obtener(0);
-        this.clienteActual = primero == null ? null : primero.getId();
+        this.usuario = usuario;
+        if (usuario.esAdministrador()) {
+            Cliente primero = clientesOrdenados().estaVacia() ? null : clientesOrdenados().obtener(0);
+            this.clienteActual = primero == null ? null : primero.getId();
+        } else {
+            this.clienteActual = usuario.getClienteId();
+        }
+    }
+
+    Usuario usuario() {
+        return usuario;
+    }
+
+    boolean esAdmin() {
+        return usuario.esAdministrador();
     }
 
     SistemaMonedero sistema() {
@@ -59,6 +78,9 @@ final class Contexto {
     }
 
     void seleccionarCliente(String clienteId) {
+        if (!esAdmin()) {
+            return; // un cliente no puede ver a otros
+        }
         if (clienteId != null && !clienteId.equals(clienteActual)) {
             clienteActual = clienteId;
             refrescarTodo();
@@ -90,9 +112,11 @@ final class Contexto {
         return c.getId() + " - " + c.getNombre();
     }
 
+    /** El saldo de un monedero ajeno solo lo ve el administrador. */
     String etiqueta(Monedero m) {
-        return m.getId() + " " + m.getNombre() + " (" + sistema.buscarCliente(m.getClienteId()).getNombre()
-                + ") " + Formato.pesos(m.getSaldo());
+        boolean propio = m.getClienteId().equals(clienteActual);
+        return m.getId() + " " + m.getNombre() + " (" + sistema.buscarCliente(m.getClienteId()).getNombre() + ")"
+                + (esAdmin() || propio ? " " + Formato.pesos(m.getSaldo()) : "");
     }
 
     /** Recarga el combo con los monederos del cliente actual (o todos) conservando la seleccion. */

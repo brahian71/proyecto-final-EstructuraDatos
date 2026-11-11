@@ -14,6 +14,7 @@ import monedero.modelo.Cliente;
 import monedero.modelo.Monedero;
 import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Rango;
+import monedero.modelo.Rol;
 import monedero.modelo.TipoNotificacion;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoTransaccion;
@@ -29,6 +30,7 @@ import monedero.modelo.Transaccion;
  *   clientes, monederos  TablaHash      buscar por id O(1) promedio
  *   registroPuntos       ArbolAVL       clientes ordenados por puntos
  *   programador          Monticulo      transacciones programadas por fecha
+ *   usuarios             TablaHash      inicio de sesion por nombre de usuario
  *   transacciones        ListaEnlazada  registro global en orden, para
  *                                       reportes y grafos (fase 5)
  */
@@ -51,6 +53,7 @@ public class SistemaMonedero {
     private final Mapa<String, Monedero> monederos = new TablaHash<>();
     private final Coleccion<Transaccion> transacciones = new ListaEnlazada<>();
     private final RegistroPuntos registroPuntos = new RegistroPuntos();
+    private final ServicioUsuarios usuarios = new ServicioUsuarios();
     private final Notificador notificador = new Notificador();
     private final ProgramadorTransacciones programador = new ProgramadorTransacciones(this);
     private final PoliticaComision politicaComision;
@@ -93,6 +96,22 @@ public class SistemaMonedero {
         registroPuntos.agregar(cliente);
         crearMonedero(cliente.getId(), "Principal", TipoMonedero.PRINCIPAL);
         return cliente;
+    }
+
+    /**
+     * Registra un cliente junto con su usuario para iniciar sesion. Primero se
+     * validan usuario y contrasena, asi un dato invalido no deja un cliente
+     * creado sin usuario.
+     */
+    public Cliente registrarClienteConUsuario(String nombre, String nombreUsuario, String contrasena) {
+        usuarios.validarNuevo(nombreUsuario, contrasena);
+        Cliente cliente = registrarCliente(nombre);
+        usuarios.registrar(nombreUsuario, contrasena, Rol.CLIENTE, cliente.getId());
+        return cliente;
+    }
+
+    public ServicioUsuarios getUsuarios() {
+        return usuarios;
     }
 
     public Monedero crearMonedero(String clienteId, String nombre, TipoMonedero tipo) {

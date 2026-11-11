@@ -33,15 +33,21 @@ final class PanelReportes extends JPanel implements Refrescable {
             "6. Flujo entre monederos del cliente actual"};
 
     private final Contexto contexto;
-    private final JComboBox<String> reporte = new JComboBox<>(REPORTES);
+    /** Indices de REPORTES que puede ver el usuario: el cliente no ve datos de los demas. */
+    private final int[] disponibles;
+    private final JComboBox<String> reporte = new JComboBox<>();
     private final JComboBox<String> otroCliente = new JComboBox<>();
     private final ModeloTabla modelo = new ModeloTabla("Concepto", "Dinero", "Veces");
     private final JTextArea explicacion = new JTextArea(3, 40);
     private final PanelGrafo dibujo = new PanelGrafo();
 
     PanelReportes(Contexto contexto) {
-        super(new GridLayout(1, 2, 10, 0));
+        super(new GridLayout(1, contexto.esAdmin() ? 2 : 1, 10, 0));
         this.contexto = contexto;
+        this.disponibles = contexto.esAdmin() ? new int[]{0, 1, 2, 3, 4, 5} : new int[]{0, 1, 5};
+        for (int i : disponibles) {
+            reporte.addItem(i == 1 && !contexto.esAdmin() ? "2. Mis secuencias de gasto mas frecuentes" : REPORTES[i]);
+        }
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel izquierda = new JPanel(new BorderLayout(0, 8));
@@ -62,9 +68,13 @@ final class PanelReportes extends JPanel implements Refrescable {
         izquierda.add(Contexto.conBorde(new JScrollPane(explicacion), "Detalle"), BorderLayout.SOUTH);
         add(izquierda);
 
-        add(Contexto.conBorde(dibujo, "Grafo de transferencias entre clientes (grosor = dinero)"));
-        reporte.addActionListener(e -> otroCliente.setEnabled(reporte.getSelectedIndex() == 4));
+        if (contexto.esAdmin()) {
+            // el grafo muestra las transferencias de todos: solo para el administrador
+            add(Contexto.conBorde(dibujo, "Grafo de transferencias entre clientes (grosor = dinero)"));
+        }
+        reporte.addActionListener(e -> otroCliente.setEnabled(seleccionado() == 4));
         otroCliente.setEnabled(false);
+        otroCliente.setVisible(contexto.esAdmin());
     }
 
     private void generar() {
@@ -72,7 +82,8 @@ final class PanelReportes extends JPanel implements Refrescable {
         if (actual == null) {
             return;
         }
-        if (reporte.getSelectedIndex() == 4 && otroCliente.getItemCount() == 0) {
+        int elegido = seleccionado();
+        if (elegido == 4 && otroCliente.getItemCount() == 0) {
             contexto.informar("Reportes", "Registre otro cliente para ver como esta conectado con " + actual.getNombre() + ".");
             return;
         }
@@ -80,10 +91,10 @@ final class PanelReportes extends JPanel implements Refrescable {
         AnalisisGastos analisis = new AnalisisGastos(contexto.sistema());
         contexto.conManejo(() -> {
             dibujo.mostrar(analisis.grafoTransferencias(), id -> contexto.sistema().buscarCliente(id).getNombre());
-            switch (reporte.getSelectedIndex()) {
+            switch (elegido) {
                 case 0 -> tabla(analisis.gastoPorCategoria(actual.getId()),
                         "Gasto de " + actual.getNombre() + " por categoria (retiros y transferencias a otros clientes).");
-                case 1 -> tabla(analisis.secuenciasFrecuentes(null, 10),
+                case 1 -> tabla(analisis.secuenciasFrecuentes(contexto.esAdmin() ? null : actual.getId(), 10),
                         "Aristas mas repetidas del grafo de categorias: X -> Y = despues de gastar en X, el mismo cliente gasto en Y.");
                 case 2 -> tabla(analisis.mayoresReceptores(10),
                         "Peso entrante de cada cliente en el grafo de transferencias; 'veces' = de cuantos clientes distintos recibe.");
@@ -95,6 +106,11 @@ final class PanelReportes extends JPanel implements Refrescable {
                 }
             }
         });
+    }
+
+    private int seleccionado() {
+        int i = reporte.getSelectedIndex();
+        return i < 0 ? -1 : disponibles[i];
     }
 
     private void tabla(Coleccion<FilaReporte> filas, String detalle) {

@@ -5,6 +5,7 @@ import monedero.modelo.Cliente;
 import monedero.modelo.Frecuencia;
 import monedero.modelo.Monedero;
 import monedero.modelo.OperacionProgramada;
+import monedero.modelo.Rol;
 import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoTransaccion;
 import monedero.servicio.SistemaMonedero;
@@ -21,14 +22,19 @@ import monedero.servicio.SistemaMonedero;
  */
 public final class DatosIniciales {
 
+    public static final String USUARIO_ADMIN = "admin";
+    public static final String CONTRASENA_ADMIN = "admin123";
+
     private DatosIniciales() {
     }
 
     public static void cargar(SistemaMonedero sistema) {
-        Cliente ana = sistema.registrarCliente("Ana Gomez");
-        Cliente bruno = sistema.registrarCliente("Bruno Diaz");
-        Cliente carla = sistema.registrarCliente("Carla Rios");
-        Cliente diego = sistema.registrarCliente("Diego Mora");
+        // usuarios de demostracion (ver README): admin / admin123 y cada cliente con su nombre + 123
+        sistema.getUsuarios().registrar(USUARIO_ADMIN, CONTRASENA_ADMIN, Rol.ADMINISTRADOR, null);
+        Cliente ana = sistema.registrarClienteConUsuario("Ana Gomez", "ana", "ana123");
+        Cliente bruno = sistema.registrarClienteConUsuario("Bruno Diaz", "bruno", "bruno123");
+        Cliente carla = sistema.registrarClienteConUsuario("Carla Rios", "carla", "carla123");
+        Cliente diego = sistema.registrarClienteConUsuario("Diego Mora", "diego", "diego123");
 
         String anaPrincipal = principal(ana);
         String brunoPrincipal = principal(bruno);

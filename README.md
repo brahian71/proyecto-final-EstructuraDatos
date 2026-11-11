@@ -7,8 +7,8 @@ Java 21, IntelliJ IDEA, sin dependencias externas.
 
 En IntelliJ: abrir la carpeta del proyecto, marcar `src` como Sources y `test`
 como Test Sources, y ejecutar:
-- `monedero.Main`: abre la interfaz grafica (con el argumento `--consola`, el menu de texto).
-- `monedero.PruebasFase1` ... `monedero.PruebasFase5`: pruebas.
+- `monedero.Main`: abre el inicio de sesion y la interfaz grafica (con el argumento `--consola`, el menu de texto).
+- `monedero.PruebasFase1` ... `monedero.PruebasFase6`: pruebas.
 - `monedero.CapturasInterfaz`: guarda una imagen de cada pestania en `docs/capturas`.
 
 Por consola (PowerShell):
@@ -22,7 +22,20 @@ java -cp out monedero.PruebasFase2
 java -cp out monedero.PruebasFase3
 java -cp out monedero.PruebasFase4
 java -cp out monedero.PruebasFase5
+java -cp out monedero.PruebasFase6
 ```
+
+## Usuarios de demostracion
+
+| Usuario | Contrasena | Rol |
+|---|---|---|
+| admin | admin123 | Administrador: ve a todos, registra clientes, avanza el reloj, verifica integridad |
+| ana | ana123 | Cliente (Plata) |
+| bruno | bruno123 | Cliente (Bronce) |
+| carla | carla123 | Cliente (Bronce) |
+| diego | diego123 | Cliente (Oro) |
+
+Las contrasenas se guardan con hash SHA-256 y sal, nunca en texto plano.
 
 ## Arquitectura
 
@@ -39,17 +52,17 @@ src/monedero/
   modelo/        Cliente, Monedero, Transaccion, TipoTransaccion, TipoMonedero,
                  Categoria, Rango, Notificacion, TipoNotificacion,
                  Beneficio, BeneficioActivo, MovimientoPuntos,
-                 OperacionProgramada, Frecuencia
+                 OperacionProgramada, Frecuencia, Usuario, Rol
   servicio/      SistemaMonedero, CalculadoraPuntos, VerificadorIntegridad,
                  ResultadoIntegridad, Notificador, RegistroPuntos (AVL),
                  ClavePuntos, PoliticaComision, ComisionEstandar,
                  ProgramadorTransacciones (monticulo), AnalisisGastos
-                 (grafos), FilaReporte, Reloj
+                 (grafos), FilaReporte, ServicioUsuarios (login), Reloj
   excepciones/   SaldoInsuficienteException, NoEncontradoException,
                  OperacionInvalidaException
   datos/         DatosIniciales (datos de ejemplo, no hay persistencia)
   ui/            MenuConsola (texto, para desarrollo)
-  ui/gui/        VentanaPrincipal y una pestania por funcionalidad: PanelResumen,
+  ui/gui/        VentanaLogin, VentanaPrincipal y una pestania por funcionalidad: PanelResumen,
                  PanelOperaciones, PanelHistorial, PanelPuntos,
                  PanelProgramadas, PanelReportes (+ PanelGrafo), PanelClientes;
                  Contexto, ModeloTabla, Formato
@@ -59,6 +72,7 @@ test/monedero/
   PruebasFase3.java
   PruebasFase4.java
   PruebasFase5.java
+  PruebasFase6.java   inicio de sesion y usuarios
   modelo/Corruptor    ayuda de pruebas para simular datos corruptos
   CapturasInterfaz    imagenes de la interfaz para revisar y para el informe
 ```
@@ -76,6 +90,7 @@ Entrega estimada: mediados de noviembre de 2026.
 | 5 | Patrones de gasto, transferencias entre clientes, multimonedero | Grafo dirigido (BFS, DFS), cola | Hecha (30 oct) |
 | 6 | Interfaz grafica (7 pestanias, grafo dibujado) | Swing | Hecha (1 nov) |
 | 7 | Ajustes a pesos colombianos (escala de puntos, bono, umbral), datos de demostracion | - | Hecha (3 nov) |
+| 7b | Inicio de sesion con roles (administrador y cliente) | Tabla hash | Hecha (9 nov) |
 | 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | 11 - 14 nov |
 
 ## Documentos

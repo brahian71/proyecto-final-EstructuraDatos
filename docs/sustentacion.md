@@ -10,7 +10,8 @@
 
 | Min | Pestania | Que hacer | Que decir |
 |---|---|---|---|
-| 0:00 | Resumen | Mostrar a Ana (Plata, 559 pts) y cambiar a Diego (Oro) | "Cada cliente tiene varios monederos (multimonedero). El rango sale de los puntos acumulados." |
+| 0:00 | Inicio de sesion | Entrar como `admin` / `admin123` (antes, mostrar que una contrasena mala da error) | "Hay dos roles: administrador y cliente. Las contrasenas se guardan con hash SHA-256 y sal." |
+| 0:20 | Resumen | Mostrar a Ana (Plata, 559 pts) y cambiar a Diego (Oro) | "Cada cliente tiene varios monederos (multimonedero). El rango sale de los puntos acumulados." |
 | 0:40 | Operaciones | Transferir $120.000 de Ana a Bruno; senalar la cotizacion antes de confirmar | "Antes de confirmar se ve la comision (1 %, minimo $500, menos 10 % por Plata) y los puntos: 3 por cada $10.000 mas 10 % de bono por rango." |
 | 1:30 | Operaciones | Revertir la ultima transaccion | "Cada cliente tiene una pila: se deshace la mas reciente. Se devuelven monto y comision y se descuentan los mismos puntos." |
 | 2:00 | Historial | Mostrar la transaccion en gris | "No se borra: queda marcada REVERTIDA y deja de contar. La historia se conserva." |
@@ -19,6 +20,7 @@
 | 3:40 | Resumen | Mostrar recordatorios y notificaciones | "Las notificaciones viven en una lista circular de 10: la nueva reemplaza a la mas vieja." |
 | 4:00 | Reportes y grafos | Reporte 4 (ciclos) y reporte 5 (conexion) | "Grafo dirigido: DFS encuentra el ciclo Ana -> Carla -> Bruno -> Ana; BFS el camino con menos intermediarios." |
 | 4:40 | Barra superior | Verificar integridad | "Verificacion recursiva por divide y venceras: saldos, puntos, AVL y monticulo." |
+| 4:50 | Barra superior | Cerrar sesion y entrar como `ana` / `ana123` | "Un cliente solo ve lo suyo: no hay selector de clientes, ni reloj, ni grafo de todos." |
 
 ## Preguntas probables
 
@@ -73,5 +75,11 @@ Se guardan las 10 mas recientes con memoria fija. Al llenarse, la nueva reutiliz
 **Por que el dinero en `long` y no `double`?**
 `double` tiene errores de redondeo y la verificacion de integridad (saldo == suma del historial) fallaria.
 
+**Como funciona el inicio de sesion? Se guardan las contrasenas?**
+No se guardan. Se guarda SHA-256(sal + contrasena), con una sal aleatoria distinta por usuario: dos usuarios con la misma contrasena tienen hashes distintos. Al entrar se recalcula y se compara. Si falla, el mensaje es el mismo para usuario o contrasena incorrectos, para no revelar que usuarios existen. Los usuarios estan en una tabla hash por nombre: O(1).
+
+**Que puede hacer cada rol?**
+El administrador ve a todos, registra clientes con su usuario, avanza el reloj y verifica la integridad. El cliente solo opera sus monederos y ve sus propios reportes; no ve saldos de otros ni el grafo de todos.
+
 **Como se probo que funciona?**
-254 pruebas propias por fase, una prueba de estres de 60.000 operaciones al azar verificando integridad cada 100 pasos (0 fallos) y una prueba automatizada de la interfaz que recorre 63 flujos.
+279 pruebas propias por fase, una prueba de estres de 60.000 operaciones al azar verificando integridad cada 100 pasos (0 fallos) y una prueba automatizada de la interfaz que recorre 82 flujos, incluido el inicio de sesion.

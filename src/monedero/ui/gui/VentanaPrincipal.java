@@ -1,6 +1,7 @@
 package monedero.ui.gui;
 
 import monedero.modelo.Cliente;
+import monedero.modelo.Usuario;
 import monedero.servicio.ResultadoIntegridad;
 import monedero.servicio.SistemaMonedero;
 import monedero.servicio.VerificadorIntegridad;
@@ -38,9 +39,9 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
     private final JTabbedPane pestanias = new JTabbedPane();
     private boolean llenandoCombo;
 
-    public VentanaPrincipal(SistemaMonedero sistema) {
-        super("Monedero Virtual con Sistema de Puntos");
-        this.contexto = new Contexto(sistema);
+    public VentanaPrincipal(SistemaMonedero sistema, Usuario usuario) {
+        super("Monedero Virtual con Sistema de Puntos - " + usuario.getNombreUsuario());
+        this.contexto = new Contexto(sistema, usuario);
         contexto.setVentana(this);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -54,7 +55,7 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         agregarPestania("Puntos y canje", new PanelPuntos(contexto));
         agregarPestania("Programadas", new PanelProgramadas(contexto));
         agregarPestania("Reportes y grafos", new PanelReportes(contexto));
-        agregarPestania("Clientes", new PanelClientes(contexto));
+        agregarPestania(usuario.esAdministrador() ? "Clientes" : "Mis monederos", new PanelClientes(contexto));
         add(pestanias, BorderLayout.CENTER);
 
         contexto.registrar(this);
@@ -99,7 +100,9 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
 
         JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         derecha.setOpaque(false);
-        derecha.add(blanco(new JLabel("Cliente:")));
+        boolean admin = contexto.esAdmin();
+        derecha.add(blanco(new JLabel(admin ? "Cliente:" : contexto.cliente().getNombre())));
+        comboCliente.setVisible(admin); // un cliente no puede cambiar de cliente
         comboCliente.setPreferredSize(new Dimension(220, 28));
         comboCliente.addActionListener(e -> {
             if (!llenandoCombo && comboCliente.getSelectedItem() != null) {
@@ -112,6 +115,7 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
 
         JSpinner dias = new JSpinner(new SpinnerNumberModel(1, 1, 365, 1));
         dias.setPreferredSize(new Dimension(60, 28));
+        dias.setVisible(admin);
         derecha.add(dias);
         JButton avanzar = new JButton("Avanzar dias");
         avanzar.setToolTipText("Mueve el reloj simulado y ejecuta las transacciones programadas que venzan");
@@ -123,11 +127,23 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
                         + (procesadas[0] > 0 ? "\n(las que no se pudieron hacer aparecen en las notificaciones)" : ""));
             }
         });
+        avanzar.setVisible(admin); // el reloj y la integridad son del sistema, no de un cliente
         derecha.add(avanzar);
 
         JButton integridad = new JButton("Verificar integridad");
         integridad.addActionListener(e -> contexto.conManejo(this::mostrarIntegridad));
+        integridad.setVisible(admin);
         derecha.add(integridad);
+
+        JLabel sesion = blanco(new JLabel(contexto.usuario().getNombreUsuario()
+                + (admin ? " (administrador)" : "")));
+        derecha.add(sesion);
+        JButton salir = new JButton("Cerrar sesion");
+        salir.addActionListener(e -> {
+            dispose();
+            new VentanaLogin(contexto.sistema()).setVisible(true);
+        });
+        derecha.add(salir);
 
         barra.add(derecha, BorderLayout.EAST);
         return barra;

@@ -161,6 +161,23 @@ Sirven de base para el informe tecnico.
     "12.500" (puntos de miles); se rechazan decimales como "12.5" o "12,50"
     para que no se lean como otro numero.
 
+50. **Inicio de sesion con dos roles.** ADMINISTRADOR: ve a todos, registra
+    clientes, avanza el reloj y verifica la integridad. CLIENTE: solo ve y
+    opera sus monederos; no ve saldos ajenos, el grafo de todos ni las
+    programadas de otros. El ranking de puntos si es visible para todos (es
+    parte del juego de rangos).
+51. **Contrasenas con hash SHA-256 y sal aleatoria por usuario**; nunca se
+    guardan en texto plano. La comparacion es en tiempo constante y el
+    mensaje de error es el mismo si falla el usuario o la contrasena (no
+    revela que usuarios existen).
+52. **Usuarios en una TablaHash por nombre de usuario** (en minusculas):
+    iniciar sesion es O(1) promedio.
+53. **Al registrar un cliente con usuario, primero se valida el usuario**;
+    si es invalido no queda un cliente creado sin usuario.
+54. **Los permisos se aplican en la interfaz** (que pestanias, datos y
+    botones ve cada rol). Los servicios no los revisan, porque tambien los
+    usan las pruebas y el menu de consola de desarrollo.
+
 ## Respondidas (2026-10-28)
 
 - **Todas las estructuras deben ser propias.** Hay que reemplazar `MapaJava`

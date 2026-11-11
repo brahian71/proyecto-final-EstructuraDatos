@@ -50,7 +50,8 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel lista = new JPanel(new BorderLayout(0, 6));
-        lista.setBorder(Contexto.tarjeta("Pendientes de todos los clientes (cola de prioridad: monticulo por fecha)"));
+        lista.setBorder(Contexto.tarjeta((contexto.esAdmin() ? "Pendientes de todos los clientes" : "Mis programadas")
+                + " (cola de prioridad: monticulo por fecha)"));
         lista.add(new JScrollPane(tabla), BorderLayout.CENTER);
         JButton cancelar = new JButton("Cancelar la seleccionada");
         cancelar.addActionListener(e -> cancelar());
@@ -170,6 +171,9 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         llenarDestino();
         Coleccion<Object[]> filas = ModeloTabla.nuevasFilas();
         for (OperacionProgramada op : contexto.sistema().getProgramador().pendientes()) {
+            if (!contexto.esAdmin() && !op.getClienteId().equals(contexto.cliente().getId())) {
+                continue; // un cliente solo ve las suyas
+            }
             String restantes = op.getEjecucionesTotales() == OperacionProgramada.SIN_LIMITE ? "sin limite"
                     : String.valueOf(op.getEjecucionesTotales() - op.getEjecucionesHechas());
             filas.agregar(new Object[]{op.getId(), Formato.fechaHora(op.getProximaEjecucion()), op.getTipo(),

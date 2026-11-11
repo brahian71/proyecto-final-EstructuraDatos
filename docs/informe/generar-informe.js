@@ -90,11 +90,10 @@ const espacio = () => new Paragraph({ children: [], spacing: { after: 120 } });
 
 // ---------------------------------------------------------------- imagenes
 
-function captura(archivo, titulo) {
+function captura(archivo, titulo, w = 580) {
   const datos = fs.readFileSync(path.join(capturas, archivo));
   const ancho = datos.readUInt32BE(16);
   const alto = datos.readUInt32BE(20);
-  const w = 580;
   return [
     new Paragraph({
       alignment: AlignmentType.CENTER,
@@ -147,8 +146,8 @@ const arquitectura = [
   h1('2. Arquitectura'),
   p('El sistema está organizado en capas. La interfaz solo conversa con la fachada `SistemaMonedero`; los servicios usan las estructuras a través de interfaces propias (`Coleccion`, `Pila`, `Cola`, `Mapa`, `ColaPrioridad`). Así la lógica no depende de cómo está implementada cada estructura y la interfaz no contiene reglas de negocio.'),
   tabla(['Capa / paquete', 'Responsabilidad', 'Clases principales'], [2000, 3700, 3660], [
-    ['`ui.gui`', 'Interfaz gráfica: 7 pestañas, solo lee y llama a la fachada', '`VentanaPrincipal`, `PanelOperaciones`, `PanelReportes`, `PanelGrafo`…'],
-    ['`servicio`', 'Reglas de negocio: operaciones, puntos, comisiones, programadas, reportes, integridad', '`SistemaMonedero`, `RegistroPuntos`, `ProgramadorTransacciones`, `AnalisisGastos`, `VerificadorIntegridad`'],
+    ['`ui.gui`', 'Inicio de sesión e interfaz gráfica: 7 pestañas, solo lee y llama a la fachada', '`VentanaLogin`, `VentanaPrincipal`, `PanelOperaciones`, `PanelReportes`, `PanelGrafo`…'],
+    ['`servicio`', 'Reglas de negocio: operaciones, puntos, comisiones, programadas, reportes, integridad, usuarios', '`SistemaMonedero`, `RegistroPuntos`, `ProgramadorTransacciones`, `AnalisisGastos`, `VerificadorIntegridad`, `ServicioUsuarios`'],
     ['`modelo`', 'Entidades del dominio', '`Cliente`, `Monedero`, `Transaccion`, `OperacionProgramada`, `Rango`, `Beneficio`'],
     ['`estructuras`', 'Estructuras de datos propias, genéricas', '`ListaEnlazada`, `PilaEnlazada`, `ColaEnlazada`, `ListaCircular`, `TablaHash`, `ArbolBST`, `ArbolAVL`, `MonticuloBinario`, `GrafoDirigido`'],
     ['`datos`, `excepciones`', 'Datos de ejemplo y errores de negocio', '`DatosIniciales`, `SaldoInsuficienteException`…'],
@@ -345,14 +344,17 @@ const puntos = [
 
 const interfaz = [
   h1('7. Interfaz gráfica'),
-  p('La interfaz en Swing tiene una barra superior con el cliente activo, la fecha del reloj simulado, el botón para avanzar días (que ejecuta las programadas) y la verificación de integridad. Cada funcionalidad tiene su pestaña. Antes de confirmar una operación se muestra la comisión y los puntos que daría.'),
+  p('Al abrir el programa se pide **usuario y contraseña**. Hay dos roles: el **administrador** ve a todos los clientes, registra clientes con su usuario, avanza el reloj simulado y verifica la integridad; el **cliente** solo ve y opera sus propios monederos (no ve saldos ajenos, el grafo de todos ni las programadas de otros). Las contraseñas no se guardan: se guarda SHA-256(sal + contraseña) con una sal aleatoria por usuario, y los usuarios están en una tabla hash por nombre (O(1)). Si las credenciales fallan, el mensaje no dice si fue el usuario o la contraseña.'),
+  ...captura('0-inicio-de-sesion.png', 'Figura 0. Inicio de sesión.', 300),
+  p('La ventana principal tiene una barra superior con el cliente activo, la fecha del reloj simulado, el botón para avanzar días (que ejecuta las programadas), la verificación de integridad y el cierre de sesión. Cada funcionalidad tiene su pestaña. Antes de confirmar una operación se muestra la comisión y los puntos que daría. Las figuras 1 a 7 muestran la vista del administrador.'),
   ...captura('1-resumen.png', 'Figura 1. Resumen: rango con progreso al siguiente, monederos y notificaciones (lista circular).'),
   ...captura('2-operaciones.png', 'Figura 2. Operaciones con cotización de comisión y puntos; abajo, la próxima transacción a revertir (pila).'),
   ...captura('3-historial.png', 'Figura 3. Historial de un monedero (lista enlazada); las revertidas se muestran en gris.'),
   ...captura('4-puntos-y-canje.png', 'Figura 4. Canje de puntos, historial de puntos y, a la derecha, el ranking y los clientes por rango obtenidos del AVL.'),
   ...captura('5-programadas.png', 'Figura 5. Transacciones programadas en el orden en que se ejecutarán (montículo).'),
   ...captura('6-reportes-y-grafos.png', 'Figura 6. Reportes de patrones de gasto y grafo de transferencias dibujado; los ciclos (DFS) y caminos (BFS) se resaltan en rojo.'),
-  ...captura('7-clientes.png', 'Figura 7. Registro de clientes y monederos (multimonedero).'),
+  ...captura('7-clientes.png', 'Figura 7. Registro de clientes (con usuario y contraseña) y monederos (multimonedero).'),
+  ...captura('8-vista-cliente.png', 'Figura 8. Vista de una clienta (Ana): sin selector de clientes, reloj ni verificación; la última pestaña es "Mis monederos".'),
 ];
 
 const pruebas = [
@@ -364,11 +366,12 @@ const pruebas = [
     ['`PruebasFase3`', 'Tabla hash, BST, AVL, comisiones, canje, bono por rango y ranking', '75'],
     ['`PruebasFase4`', 'Montículo y transacciones programadas', '39'],
     ['`PruebasFase5`', 'Cola, grafo (BFS, DFS, ciclos) y reportes', '36'],
-    ['**Total**', '', '**254**'],
+    ['`PruebasFase6`', 'Inicio de sesión: hash con sal, credenciales inválidas, roles', '25'],
+    ['**Total**', '', '**279**'],
   ]),
   espacio(),
   p('Además se ejecutó una prueba de estrés aleatoria: 20 escenarios de 3.000 operaciones al azar (depósitos, retiros, transferencias, reversiones, canjes, programadas, cancelaciones, saltos de reloj y reportes), es decir **60.000 operaciones**, verificando la integridad cada 100 pasos. Resultado: 0 fallos de integridad y 0 excepciones inesperadas.'),
-  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) y comprueba 63 flujos, entre ellos operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes y registro de clientes.'),
+  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) y comprueba 82 flujos, entre ellos inicio de sesión (credenciales malas y correctas), operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes, registro de clientes con usuario y las restricciones de la vista de un cliente.'),
 ];
 
 const trazabilidad = [
@@ -388,7 +391,7 @@ const trazabilidad = [
     ['Integridad con algoritmos recursivos', '`VerificadorIntegridad`; botón Verificar integridad'],
     ['Recalcular puntos al revertir', '`SistemaMonedero.revertirUltima`, `PilaEnlazada`'],
     ['Listas, pilas, colas, árboles, grafos, tablas hash', 'Paquete `estructuras` (todas propias)'],
-    ['Interfaz avanzada: transacciones, puntos, rangos, canje', '`ui.gui`, 7 pestañas'],
+    ['Interfaz avanzada: transacciones, puntos, rangos, canje', '`ui.gui`, 7 pestañas, inicio de sesión con roles'],
     ['Optimización de algoritmos', 'Sección 5'],
   ]),
   espacio(),
@@ -399,18 +402,19 @@ const trazabilidad = [
   vineta('Comisión calculada con el rango y los beneficios del momento; la paga quien envía o retira.'),
   vineta('Reloj simulado para demostrar las programadas sin esperar.'),
   vineta('Monto máximo de $1.000.000.000 por transacción (también evita desbordar los puntos).'),
-  nota('La lista completa de decisiones (49) está en `docs/decisiones.md` del repositorio.'),
+  vineta('Inicio de sesión con roles; contraseñas con hash SHA-256 y sal, nunca en texto plano.'),
+  nota('La lista completa de decisiones (54) está en `docs/decisiones.md` del repositorio.'),
 ];
 
 const conclusiones = [
   h1('10. Conclusiones'),
   vineta('La elección de la estructura se notó en las mediciones: el AVL mantiene altura 14 con 10.000 claves ordenadas donde un BST simple llega a 10.000, y el montículo procesa 20.000 programadas unas 18 veces más rápido que una lista ordenada.'),
   vineta('Separar la lógica de las estructuras (interfaces propias) y de la interfaz gráfica permitió construir el proyecto por fases y cambiar implementaciones sin tocar el resto, como ocurrió al reemplazar el BST de la interfaz por el AVL.'),
-  vineta('La verificación recursiva de integridad, junto con las 254 pruebas, la prueba de estrés y la prueba automatizada de la interfaz, da confianza en que saldos, puntos, árboles y montículo se mantienen coherentes incluso con reversiones y canjes.'),
+  vineta('La verificación recursiva de integridad, junto con las 279 pruebas, la prueba de estrés y la prueba automatizada de la interfaz, da confianza en que saldos, puntos, árboles y montículo se mantienen coherentes incluso con reversiones y canjes.'),
   vineta('El sistema de puntos, con dos cuentas (acumulados y disponibles) y una escala en pesos, incentiva el uso real del monedero sin que canjear castigue al cliente.'),
   h2('10.1 Trabajo futuro'),
   vineta('Persistencia en archivos para conservar los datos entre ejecuciones.'),
-  vineta('Usuarios con inicio de sesión, para que cada cliente vea solo sus monederos.'),
+  vineta('Bloqueo temporal de la cuenta tras varios intentos fallidos de inicio de sesión.'),
   h1('Anexo: cómo ejecutar'),
   p('En IntelliJ IDEA: abrir la carpeta del proyecto, marcar `src` como Sources y `test` como Test Sources, y ejecutar `monedero.Main` (interfaz gráfica), `monedero.Main --consola` (menú de texto) o `monedero.PruebasFase1` a `PruebasFase5` (pruebas). Desde PowerShell:'),
   ...codigo([

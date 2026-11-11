@@ -3,6 +3,8 @@ package monedero;
 import monedero.datos.DatosIniciales;
 import monedero.servicio.Reloj;
 import monedero.servicio.SistemaMonedero;
+import monedero.modelo.Usuario;
+import monedero.ui.gui.VentanaLogin;
 import monedero.ui.gui.VentanaPrincipal;
 
 import javax.imageio.ImageIO;
@@ -39,7 +41,9 @@ public class CapturasInterfaz {
         sistema.avanzarDias(10); // que se ejecuten algunas programadas
 
         VentanaPrincipal.aplicarAspecto();
-        VentanaPrincipal ventana = new VentanaPrincipal(sistema);
+        guardarLogin(sistema, carpeta);
+        Usuario admin = sistema.getUsuarios().iniciarSesion(DatosIniciales.USUARIO_ADMIN, DatosIniciales.CONTRASENA_ADMIN);
+        VentanaPrincipal ventana = new VentanaPrincipal(sistema, admin);
         ventana.setSize(1280, 760);
         ventana.validate();
 
@@ -58,5 +62,29 @@ public class CapturasInterfaz {
             System.out.println("Captura: " + new File(carpeta, nombre).getPath());
         }
         ventana.dispose();
+
+        // vista de un cliente (Ana): sin selector de clientes, reloj ni grafo
+        Usuario ana = sistema.getUsuarios().iniciarSesion("ana", "ana123");
+        VentanaPrincipal vistaCliente = new VentanaPrincipal(sistema, ana);
+        vistaCliente.setSize(1280, 760);
+        vistaCliente.validate();
+        guardar(vistaCliente.getContentPane(), new File(carpeta, "8-vista-cliente.png"));
+        vistaCliente.dispose();
+    }
+
+    private static void guardarLogin(SistemaMonedero sistema, File carpeta) throws Exception {
+        VentanaLogin login = new VentanaLogin(sistema);
+        login.validate();
+        guardar(login.getContentPane(), new File(carpeta, "0-inicio-de-sesion.png"));
+        login.dispose();
+    }
+
+    private static void guardar(java.awt.Container panel, File archivo) throws Exception {
+        BufferedImage imagen = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = imagen.createGraphics();
+        panel.printAll(g);
+        g.dispose();
+        ImageIO.write(imagen, "png", archivo);
+        System.out.println("Captura: " + archivo.getPath());
     }
 }
