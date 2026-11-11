@@ -8,6 +8,7 @@ import monedero.excepciones.NoEncontradoException;
 import monedero.excepciones.OperacionInvalidaException;
 import monedero.modelo.Categoria;
 import monedero.modelo.Frecuencia;
+import monedero.modelo.Moneda;
 import monedero.modelo.Monedero;
 import monedero.modelo.OperacionProgramada;
 import monedero.modelo.TipoNotificacion;
@@ -164,7 +165,7 @@ public class ProgramadorTransacciones {
             // cualquier falla cuenta como ejecucion fallida: la operacion ya salio de la cola y,
             // si la excepcion escapara, no volveria a entrar y se perderia
             sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.FALLO_PROGRAMADA,
-                    "No se pudo ejecutar " + op.getId() + " (" + op.getTipo() + " $" + op.getMonto() + "): "
+                    "No se pudo ejecutar " + op.getId() + " (" + op.getTipo() + " " + Moneda.pesos(op.getMonto()) + "): "
                             + e.getMessage(), sistema.getReloj().ahora());
             return false;
         }
@@ -181,7 +182,7 @@ public class ProgramadorTransacciones {
             LocalDateTime proxima = op.getProximaEjecucion();
             if (proxima.isAfter(ahora) && !proxima.isAfter(limite)) {
                 sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.RECORDATORIO,
-                        "Manana se ejecuta " + op.getId() + ": " + op.getTipo() + " de $" + op.getMonto()
+                        "Manana se ejecuta " + op.getId() + ": " + op.getTipo() + " de " + Moneda.pesos(op.getMonto())
                                 + " (" + proxima.toLocalDate() + ")", ahora);
                 op.marcarRecordada();
             }

@@ -197,8 +197,8 @@ public class Transaccion {
 
     @Override
     public String toString() {
-        return id + " " + tipo + " $" + monto
-                + (comision > 0 ? " (+com $" + comision + ")" : "")
+        return id + " " + tipo + " " + Moneda.pesos(monto)
+                + (comision > 0 ? " (+com " + Moneda.pesos(comision) + ")" : "")
                 + " " + (origenId == null ? "-" : origenId) + " -> " + (destinoId == null ? "-" : destinoId)
                 + " [" + categoria + "] +" + puntos + "pts" + (bonoPuntos > 0 ? " (" + bonoPuntos + " de bono)" : "")
                 + " " + fecha.toLocalDate()

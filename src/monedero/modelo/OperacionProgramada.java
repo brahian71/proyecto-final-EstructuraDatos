@@ -177,7 +177,7 @@ public class OperacionProgramada {
     public String toString() {
         String restantes = ejecucionesTotales == SIN_LIMITE ? "sin limite"
                 : (ejecucionesTotales - ejecucionesHechas) + " restantes";
-        return id + " " + tipo + " $" + monto + " " + (origenId == null ? "-" : origenId) + " -> "
+        return id + " " + tipo + " " + Moneda.pesos(monto) + " " + (origenId == null ? "-" : origenId) + " -> "
                 + (destinoId == null ? "-" : destinoId) + " " + frecuencia + ", proxima "
                 + getProximaEjecucion().toLocalDate() + " (" + restantes
                 + (fallos > 0 ? ", " + fallos + " fallos" : "") + ")";

@@ -97,6 +97,8 @@ Entrega estimada: mediados de noviembre de 2026.
 
 - [docs/decisiones.md](docs/decisiones.md): decisiones de diseno y preguntas abiertas.
 - [docs/sustentacion.md](docs/sustentacion.md): guion de demostracion y preguntas probables.
+- [docs/mapa-del-proyecto.md](docs/mapa-del-proyecto.md): donde esta cada cosa en el codigo (se genera
+  con `python docs/generar-mapa.py` desde `docs/mapa-plantilla.md`).
 - `docs/informe/`: informe tecnico en Word (el `.docx` no se sube al repositorio) y
   `generar-informe.js`, que lo genera (`npm install docx` y `node generar-informe.js <proyecto> <salida.docx>`).
 - `docs/capturas/`: imagenes de cada pestania de la interfaz.

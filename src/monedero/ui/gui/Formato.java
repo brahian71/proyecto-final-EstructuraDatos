@@ -5,12 +5,10 @@ import monedero.modelo.Rango;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 /** Formatos y colores compartidos por toda la interfaz. */
 final class Formato {
 
-    private static final Locale COLOMBIA = Locale.of("es", "CO");
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -26,7 +24,7 @@ final class Formato {
 
     /** 12345 -> "$12.345" (separador de miles colombiano). */
     static String pesos(long valor) {
-        return (valor < 0 ? "-" : "") + String.format(COLOMBIA, "$%,d", Math.abs(valor));
+        return monedero.modelo.Moneda.pesos(valor);
     }
 
     static String fecha(LocalDateTime fecha) {

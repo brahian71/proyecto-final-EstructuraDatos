@@ -225,7 +225,7 @@ public class PruebasFase1 {
         ResultadoIntegridad r = new VerificadorIntegridad(s).verificar();
         boolean menciona = false;
         for (String e : r.getErrores()) {
-            menciona |= e.contains("-300");
+            menciona |= e.contains("-$300");
         }
         verificar("integridad: detecta saldo negativo intermedio", menciona);
     }

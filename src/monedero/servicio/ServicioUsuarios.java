@@ -42,7 +42,7 @@ public class ServicioUsuarios {
         if (usuarios.contiene(clave)) {
             throw new OperacionInvalidaException("El usuario " + clave + " ya existe");
         }
-        if (contrasena == null || contrasena.length() < MINIMO_CONTRASENA) {
+        if (contrasena == null || contrasena.isBlank() || contrasena.length() < MINIMO_CONTRASENA) {
             throw new OperacionInvalidaException("La contrasena debe tener al menos " + MINIMO_CONTRASENA + " caracteres");
         }
     }

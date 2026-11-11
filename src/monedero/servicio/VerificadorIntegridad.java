@@ -1,6 +1,7 @@
 package monedero.servicio;
 
 import monedero.modelo.Cliente;
+import monedero.modelo.Moneda;
 import monedero.modelo.Monedero;
 import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Rango;
@@ -91,11 +92,11 @@ public class VerificadorIntegridad {
 
         Tramo tramo = sumarEfectos(historial, id, 0, historial.length - 1);
         if (tramo.suma != monedero.getSaldo()) {
-            resultado.agregarError(id + ": saldo guardado $" + monedero.getSaldo()
-                    + " pero el historial suma $" + tramo.suma);
+            resultado.agregarError(id + ": saldo guardado " + Moneda.pesos(monedero.getSaldo())
+                    + " pero el historial suma " + Moneda.pesos(tramo.suma));
         }
         if (tramo.minimoParcial < 0) {
-            resultado.agregarError(id + ": el saldo llego a $" + tramo.minimoParcial + " en algun punto del historial");
+            resultado.agregarError(id + ": el saldo llego a " + Moneda.pesos(tramo.minimoParcial) + " en algun punto del historial");
         }
     }
 

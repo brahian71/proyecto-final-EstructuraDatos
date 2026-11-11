@@ -72,13 +72,17 @@ final class PanelHistorial extends JPanel implements Refrescable {
         if (monedero.getSelectedItem() != null) {
             String id = Formato.idDe(monedero.getSelectedItem());
             int revertidas = 0;
+            String duenio = contexto.sistema().buscarMonedero(id).getClienteId();
             for (Transaccion t : contexto.sistema().historial(id)) {
                 long efecto = t.efectoVigenteSobre(id);
                 revertidas += t.isRevertida() ? 1 : 0;
+                // en una transferencia recibida de otro cliente, la comision la pago y los puntos los gano el otro
+                boolean deOtro = t.getOrigenId() != null
+                        && !contexto.sistema().buscarMonedero(t.getOrigenId()).getClienteId().equals(duenio);
                 filas.agregar(new Object[]{t.getId(), Formato.fechaHora(t.getFecha()), t.getTipo(),
-                        Formato.pesos(t.getMonto()), Formato.pesos(t.getComision()),
+                        Formato.pesos(t.getMonto()), deOtro ? "-" : Formato.pesos(t.getComision()),
                         t.getOrigenId() == null ? "-" : t.getOrigenId(), t.getDestinoId() == null ? "-" : t.getDestinoId(),
-                        t.getCategoria(), t.getPuntos(), t.isRevertida() ? "REVERTIDA" : "Vigente",
+                        t.getCategoria(), deOtro ? "-" : t.getPuntos(), t.isRevertida() ? "REVERTIDA" : "Vigente",
                         (efecto > 0 ? "+" : "") + Formato.pesos(efecto), t.getDescripcion()});
             }
             resumen.setText("   " + filas.tamanio() + " transacciones, " + revertidas + " revertidas. Saldo: "

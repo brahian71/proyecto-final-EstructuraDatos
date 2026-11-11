@@ -2,6 +2,9 @@
 
 ## Antes de empezar
 
+- Tener abierto el mapa [mapa-del-proyecto.md](mapa-del-proyecto.md): dice en que clase y
+  metodo esta cada cosa, con enlaces a la linea, por si el profesor pide verlo en el codigo.
+
 - Tener abierto IntelliJ con el proyecto y `monedero.Main` listo para ejecutar.
 - Tener a mano `docs/decisiones.md` y el informe.
 - Correr una vez las pruebas (`PruebasFase1` a `PruebasFase5`) para mostrar que pasan.
@@ -82,4 +85,4 @@ No se guardan. Se guarda SHA-256(sal + contrasena), con una sal aleatoria distin
 El administrador ve a todos, registra clientes con su usuario, avanza el reloj y verifica la integridad. El cliente solo opera sus monederos y ve sus propios reportes; no ve saldos de otros ni el grafo de todos.
 
 **Como se probo que funciona?**
-279 pruebas propias por fase, una prueba de estres de 60.000 operaciones al azar verificando integridad cada 100 pasos (0 fallos) y una prueba automatizada de la interfaz que recorre 82 flujos, incluido el inicio de sesion.
+280 pruebas propias por fase, una prueba de estres de 60.000 operaciones al azar verificando integridad cada 100 pasos (0 fallos) y una prueba automatizada de la interfaz que recorre 82 flujos, incluido el inicio de sesion.

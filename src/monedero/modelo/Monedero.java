@@ -156,6 +156,6 @@ public class Monedero {
 
     @Override
     public String toString() {
-        return id + " " + nombre + " (" + tipo + ") $" + saldo;
+        return id + " " + nombre + " (" + tipo + ") " + Moneda.pesos(saldo);
     }
 }

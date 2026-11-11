@@ -11,6 +11,7 @@ import monedero.modelo.Beneficio;
 import monedero.modelo.BeneficioActivo;
 import monedero.modelo.Categoria;
 import monedero.modelo.Cliente;
+import monedero.modelo.Moneda;
 import monedero.modelo.Monedero;
 import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Rango;
@@ -191,7 +192,7 @@ public class SistemaMonedero {
         avisarSiSaldoBajo(origen);
         if (tipo == TipoTransaccion.TRANSFERENCIA) {
             notificador.notificar(destino.getClienteId(), TipoNotificacion.TRANSFERENCIA_RECIBIDA,
-                    "Recibiste $" + monto + " de " + buscarCliente(origen.getClienteId()).getNombre()
+                    "Recibiste " + Moneda.pesos(monto) + " de " + buscarCliente(origen.getClienteId()).getNombre()
                             + " en " + destino.getNombre(), reloj.ahora());
         }
         return t;
@@ -220,7 +221,7 @@ public class SistemaMonedero {
         Monedero origen = t.getOrigenId() == null ? null : buscarMonedero(t.getOrigenId());
         Monedero destino = t.getDestinoId() == null ? null : buscarMonedero(t.getDestinoId());
         if (destino != null && destino.saldoMinimoDesde(t) < t.getMonto()) {
-            throw new OperacionInvalidaException("No se puede revertir " + t.getId() + ": los $" + t.getMonto()
+            throw new OperacionInvalidaException("No se puede revertir " + t.getId() + ": los " + Moneda.pesos(t.getMonto())
                     + " que recibio " + destino.getId() + " ya se usaron despues");
         }
         if (cliente.getPuntosDisponibles() < t.getPuntos()) {
@@ -240,11 +241,11 @@ public class SistemaMonedero {
         registroPuntos.perder(cliente, t.getPuntos(), reloj.ahora(), "Reversion " + t.getId());
 
         notificador.notificar(clienteId, TipoNotificacion.REVERSION,
-                "Se revirtio " + t.getId() + " (" + t.getTipo() + " $" + t.getMonto() + "), -" + t.getPuntos() + " pts",
+                "Se revirtio " + t.getId() + " (" + t.getTipo() + " " + Moneda.pesos(t.getMonto()) + "), -" + t.getPuntos() + " pts",
                 reloj.ahora());
         if (t.getTipo() == TipoTransaccion.TRANSFERENCIA) {
             notificador.notificar(destino.getClienteId(), TipoNotificacion.REVERSION,
-                    "Se revirtio la transferencia " + t.getId() + " de $" + t.getMonto() + " que recibiste",
+                    "Se revirtio la transferencia " + t.getId() + " de " + Moneda.pesos(t.getMonto()) + " que recibiste",
                     reloj.ahora());
         }
         avisarSiCambioRango(cliente, antes);
@@ -426,7 +427,7 @@ public class SistemaMonedero {
     private void avisarSiSaldoBajo(Monedero monedero) {
         if (monedero.getSaldo() < umbralSaldoBajo()) {
             notificador.notificar(monedero.getClienteId(), TipoNotificacion.SALDO_BAJO,
-                    "Saldo bajo en " + monedero.getNombre() + " (" + monedero.getId() + "): $" + monedero.getSaldo(),
+                    "Saldo bajo en " + monedero.getNombre() + " (" + monedero.getId() + "): " + Moneda.pesos(monedero.getSaldo()),
                     reloj.ahora());
         }
     }

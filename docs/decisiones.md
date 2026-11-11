@@ -165,7 +165,10 @@ Sirven de base para el informe tecnico.
     clientes, avanza el reloj y verifica la integridad. CLIENTE: solo ve y
     opera sus monederos; no ve saldos ajenos, el grafo de todos ni las
     programadas de otros. El ranking de puntos si es visible para todos (es
-    parte del juego de rangos).
+    parte del juego de rangos: cada cliente ve su posicion frente a los demas).
+    En el historial de un monedero, la comision y los puntos de una
+    transferencia recibida de otro cliente se muestran como "-" (son del que
+    la envio).
 51. **Contrasenas con hash SHA-256 y sal aleatoria por usuario**; nunca se
     guardan en texto plano. La comparacion es en tiempo constante y el
     mensaje de error es el mismo si falla el usuario o la contrasena (no

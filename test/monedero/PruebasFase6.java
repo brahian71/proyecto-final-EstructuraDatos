@@ -77,6 +77,7 @@ public class PruebasFase6 {
         lanza("validar: usuario corto", OperacionInvalidaException.class, () -> u.registrar("ab", "123456", Rol.ADMINISTRADOR, null));
         lanza("validar: usuario con espacios", OperacionInvalidaException.class, () -> u.registrar("ana gomez", "123456", Rol.ADMINISTRADOR, null));
         lanza("validar: contrasena corta", OperacionInvalidaException.class, () -> u.registrar("ana", "12345", Rol.ADMINISTRADOR, null));
+        lanza("validar: contrasena de solo espacios", OperacionInvalidaException.class, () -> u.registrar("ana", "        ", Rol.ADMINISTRADOR, null));
         lanza("validar: cliente sin clienteId", IllegalArgumentException.class, () -> u.registrar("ana", "123456", Rol.CLIENTE, null));
         verificar("validar: no quedo ningun usuario", u.cantidad() == 0);
     }
