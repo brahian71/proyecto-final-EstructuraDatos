@@ -21,10 +21,6 @@ import monedero.servicio.VerificadorIntegridad;
 
 import java.time.LocalDateTime;
 
-/**
- * Pruebas de la fase 1 (operaciones basicas, puntos, rangos, integridad).
- * Igual que en el parcial: sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase1 {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 1, 8, 0);
@@ -64,7 +60,6 @@ public class PruebasFase1 {
         verificar("puntos: menos de 100 da 0", uno.calcular(TipoTransaccion.TRANSFERENCIA, 99) == 0);
         verificar("puntos: movimiento interno 0", uno.calcular(TipoTransaccion.MOVIMIENTO_INTERNO, 5000) == 0);
 
-        // pesos colombianos: unidad = $100, puntos por cada $10.000 completos
         CalculadoraPuntos cop = CalculadoraPuntos.PESOS_COLOMBIANOS;
         verificar("cop: salario $2.000.000 = 200 pts", cop.calcular(TipoTransaccion.DEPOSITO, 2_000_000) == 200);
         verificar("cop: retiro $50.000 = 10 pts", cop.calcular(TipoTransaccion.RETIRO, 50_000) == 10);
@@ -209,7 +204,6 @@ public class PruebasFase1 {
                 null, s.getReloj().ahora(), "falsa", 5);
         Corruptor.meterSinAfectarSaldo(s.buscarMonedero(m), falsa);
         ResultadoIntegridad r = new VerificadorIntegridad(s).verificar();
-        // el saldo ya no cuadra y los puntos del cliente tampoco
         verificar("integridad: detecta saldo y puntos", !r.esValido() && r.cantidadErrores() == 2);
     }
 
@@ -218,8 +212,6 @@ public class PruebasFase1 {
         String m = principal(s.registrarCliente("Ana"));
         Monedero monedero = s.buscarMonedero(m);
         LocalDateTime f = s.getReloj().ahora();
-        // primero un retiro y despues el deposito que lo cubre: el total da 0,
-        // pero a mitad de camino el saldo fue -300
         Corruptor.meterSinAfectarSaldo(monedero, new Transaccion("TA", TipoTransaccion.RETIRO, 300, 0, m, null, null, f, "", 0));
         Corruptor.meterSinAfectarSaldo(monedero, new Transaccion("TB", TipoTransaccion.DEPOSITO, 300, 0, null, m, null, f, "", 0));
         ResultadoIntegridad r = new VerificadorIntegridad(s).verificar();
@@ -236,12 +228,9 @@ public class PruebasFase1 {
         for (int i = 0; i < 50_000; i++) {
             s.depositar(m, 100, "");
         }
-        // con recursion lineal esto daria StackOverflowError
         verificar("integridad: 50.000 transacciones sin desbordar pila",
                 new VerificadorIntegridad(s).verificar().esValido());
     }
-
-    // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
         return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);

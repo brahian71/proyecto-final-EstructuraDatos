@@ -9,10 +9,6 @@ import monedero.ui.gui.VentanaPrincipal;
 import javax.swing.SwingUtilities;
 import java.util.Scanner;
 
-/**
- * Abre la pantalla de inicio de sesion. Con el argumento --consola usa el
- * menu de texto (se dejo para desarrollo y pruebas rapidas).
- */
 public class Main {
 
     public static void main(String[] args) {

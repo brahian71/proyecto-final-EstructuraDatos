@@ -14,7 +14,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 
-/** Historial de un monedero (lista enlazada en orden cronologico); las revertidas se ven tachadas en gris. */
 final class PanelHistorial extends JPanel implements Refrescable {
 
     private static final int COLUMNA_ESTADO = 9;
@@ -43,19 +42,19 @@ final class PanelHistorial extends JPanel implements Refrescable {
         add(arriba, BorderLayout.NORTH);
 
         JTable tabla = modelo.crearTabla();
-        tabla.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        tabla.setDefaultRenderer(Object.class, new Estilo.RenderizadorCelda() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object valor, boolean seleccionada,
                                                            boolean foco, int fila, int columna) {
                 Component c = super.getTableCellRendererComponent(t, valor, seleccionada, foco, fila, columna);
-                boolean revertida = "REVERTIDA".equals(modelo.valor(fila, COLUMNA_ESTADO));
-                if (!seleccionada) {
-                    c.setForeground(revertida ? Formato.APAGADO : java.awt.Color.BLACK);
+                if (!seleccionada && "REVERTIDA".equals(modelo.valor(fila, COLUMNA_ESTADO))) {
+                    c.setForeground(Formato.APAGADO);
                 }
                 return c;
             }
         });
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        Estilo.anchos(tabla, 60, 130, 160, 105, 80, 60, 60, 130, 60, 90, 115, 200);
+        add(Estilo.comoTarjeta(new JScrollPane(tabla), "Transacciones del monedero (lista enlazada, en orden)"), BorderLayout.CENTER);
     }
 
     @Override
@@ -76,7 +75,6 @@ final class PanelHistorial extends JPanel implements Refrescable {
             for (Transaccion t : contexto.sistema().historial(id)) {
                 long efecto = t.efectoVigenteSobre(id);
                 revertidas += t.isRevertida() ? 1 : 0;
-                // en una transferencia recibida de otro cliente, la comision la pago y los puntos los gano el otro
                 boolean deOtro = t.getOrigenId() != null
                         && !contexto.sistema().buscarMonedero(t.getOrigenId()).getClienteId().equals(duenio);
                 filas.agregar(new Object[]{t.getId(), Formato.fechaHora(t.getFecha()), t.getTipo(),

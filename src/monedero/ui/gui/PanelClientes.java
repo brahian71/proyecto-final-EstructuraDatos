@@ -20,11 +20,6 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.util.Arrays;
 
-/**
- * Administrador: registrar clientes (con su usuario y contrasena), crear
- * monederos y ver a todos los clientes.
- * Cliente: crear monederos propios y ver sus monederos.
- */
 final class PanelClientes extends JPanel implements Refrescable {
 
     private final Contexto contexto;
@@ -46,18 +41,18 @@ final class PanelClientes extends JPanel implements Refrescable {
         }
         formularios.add(formularioMonedero());
         add(formularios, BorderLayout.NORTH);
-        add(Contexto.conBorde(new JScrollPane(modelo.crearTabla()), admin
+        add(Estilo.comoTarjeta(new JScrollPane(modelo.crearTabla()), admin
                 ? "Todos los clientes (tabla hash por id; aqui ordenados por id con un AVL)"
                 : "Mis monederos"), BorderLayout.CENTER);
     }
 
     private JPanel formularioCliente() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panel.setBorder(Contexto.tarjeta("Registrar cliente (se crea con un monedero Principal y su usuario para iniciar sesion)"));
+        Estilo.comoTarjeta(panel, "Registrar cliente (se crea con un monedero Principal y su usuario para iniciar sesion)");
         JTextField nombre = new JTextField(14);
         JTextField usuario = new JTextField(10);
         JPasswordField contrasena = new JPasswordField(10);
-        JButton registrar = new JButton("Registrar");
+        JButton registrar = Estilo.botonPrimario("Registrar");
         registrar.addActionListener(e -> {
             Cliente[] creado = new Cliente[1];
             char[] clave = contrasena.getPassword();
@@ -87,11 +82,11 @@ final class PanelClientes extends JPanel implements Refrescable {
 
     private JPanel formularioMonedero() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panel.setBorder(Contexto.tarjeta(contexto.esAdmin() ? "Crear monedero para el cliente actual" : "Crear un monedero"));
+        Estilo.comoTarjeta(panel, contexto.esAdmin() ? "Crear monedero para el cliente actual" : "Crear un monedero");
         JTextField nombreMonedero = new JTextField(12);
         JComboBox<TipoMonedero> tipo = new JComboBox<>(TipoMonedero.values());
         tipo.setSelectedItem(TipoMonedero.AHORROS);
-        JButton crear = new JButton("Crear");
+        JButton crear = Estilo.botonPrimario("Crear");
         crear.addActionListener(e -> {
             Cliente c = contexto.cliente();
             Monedero[] creado = new Monedero[1];

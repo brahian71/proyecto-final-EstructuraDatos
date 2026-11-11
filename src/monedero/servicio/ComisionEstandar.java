@@ -6,16 +6,6 @@ import monedero.modelo.TipoTransaccion;
 
 import java.time.LocalDateTime;
 
-/**
- * Tarifas (opcion C de docs/decisiones.md):
- *   TRANSFERENCIA       1 % del monto, minimo $500, menos los descuentos:
- *                         por rango (Bronce 0, Plata 10, Oro 20, Platino 30 %)
- *                         + 10 % si tiene activo DESCUENTO_TRANSFERENCIAS
- *   RETIRO              $2.000 fijos, $0 si tiene activo RETIROS_SIN_CARGO
- *   DEPOSITO, MOVIMIENTO_INTERNO, BONO   gratis
- *
- * Todo en enteros: el descuento se aplica como comision * (100 - %) / 100.
- */
 public class ComisionEstandar implements PoliticaComision {
 
     public static final long PORCENTAJE_TRANSFERENCIA = 1;

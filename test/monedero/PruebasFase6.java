@@ -9,10 +9,6 @@ import monedero.modelo.Usuario;
 import monedero.servicio.ServicioUsuarios;
 import monedero.servicio.SistemaMonedero;
 
-/**
- * Pruebas del inicio de sesion: registro de usuarios, contrasenas con hash y
- * sal, credenciales invalidas y roles. Sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase6 {
 
     private static int exitos = 0;
@@ -113,8 +109,6 @@ public class PruebasFase6 {
         verificar("ejemplo: ana entra como su cliente", s.getUsuarios().iniciarSesion("ana", "ana123").getClienteId().equals("C001"));
         verificar("ejemplo: 5 usuarios", s.getUsuarios().cantidad() == 5);
     }
-
-    // ------------------------------------------------------------------ apoyo
 
     private static String mensaje(Runnable accion) {
         try {

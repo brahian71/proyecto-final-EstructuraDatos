@@ -3,15 +3,6 @@ package monedero.estructuras;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Cola con nodos enlazados: se encola por la cola (final) y se desencola por
- * el frente (inicio), asi las dos operaciones son O(1). La usa el recorrido
- * en anchura (BFS) del grafo.
- *
- * Costos:
- *   encolar / desencolar / frente   O(1)
- *   recorrido                       O(n) del frente al final
- */
 public class ColaEnlazada<T> implements Cola<T> {
 
     private static class Nodo<T> {

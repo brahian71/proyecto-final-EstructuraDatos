@@ -17,11 +17,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 
-/**
- * Los seis reportes de patrones de gasto (grafos dirigidos). A la derecha
- * se dibuja el grafo de transferencias entre clientes; los reportes de
- * ciclos (DFS) y conexion (BFS) resaltan en rojo lo que encontraron.
- */
 final class PanelReportes extends JPanel implements Refrescable {
 
     private static final String[] REPORTES = {
@@ -33,7 +28,6 @@ final class PanelReportes extends JPanel implements Refrescable {
             "6. Flujo entre monederos del cliente actual"};
 
     private final Contexto contexto;
-    /** Indices de REPORTES que puede ver el usuario: el cliente no ve datos de los demas. */
     private final int[] disponibles;
     private final JComboBox<String> reporte = new JComboBox<>();
     private final JComboBox<String> otroCliente = new JComboBox<>();
@@ -51,26 +45,28 @@ final class PanelReportes extends JPanel implements Refrescable {
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel izquierda = new JPanel(new BorderLayout(0, 8));
-        JPanel opciones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        opciones.setBorder(Contexto.tarjeta("Reporte"));
-        opciones.add(reporte);
-        opciones.add(new JLabel("Otro cliente:"));
-        opciones.add(otroCliente);
-        JButton generar = new JButton("Generar");
+        JPanel opciones = new JPanel(new BorderLayout(10, 8));
+        Estilo.comoTarjeta(opciones, "Reporte");
+        opciones.add(reporte, BorderLayout.NORTH);
+        JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        fila.add(new JLabel("Otro cliente:"));
+        fila.add(otroCliente);
+        fila.setVisible(contexto.esAdmin());
+        opciones.add(fila, BorderLayout.CENTER);
+        JButton generar = Estilo.botonPrimario("Generar");
         generar.addActionListener(e -> generar());
-        opciones.add(generar);
+        opciones.add(generar, BorderLayout.EAST);
         izquierda.add(opciones, BorderLayout.NORTH);
-        izquierda.add(Contexto.conBorde(new JScrollPane(modelo.crearTabla()), "Resultado"), BorderLayout.CENTER);
+        izquierda.add(Estilo.comoTarjeta(new JScrollPane(modelo.crearTabla()), "Resultado"), BorderLayout.CENTER);
         explicacion.setEditable(false);
         explicacion.setLineWrap(true);
         explicacion.setWrapStyleWord(true);
         explicacion.setFont(explicacion.getFont().deriveFont(Font.PLAIN, 13f));
-        izquierda.add(Contexto.conBorde(new JScrollPane(explicacion), "Detalle"), BorderLayout.SOUTH);
+        izquierda.add(Estilo.comoTarjeta(new JScrollPane(explicacion), "Detalle"), BorderLayout.SOUTH);
         add(izquierda);
 
         if (contexto.esAdmin()) {
-            // el grafo muestra las transferencias de todos: solo para el administrador
-            add(Contexto.conBorde(dibujo, "Grafo de transferencias entre clientes (grosor = dinero)"));
+            add(Estilo.comoTarjeta(dibujo, "Grafo de transferencias entre clientes (grosor = dinero)"));
         }
         reporte.addActionListener(e -> otroCliente.setEnabled(seleccionado() == 4));
         otroCliente.setEnabled(false);
@@ -87,7 +83,6 @@ final class PanelReportes extends JPanel implements Refrescable {
             contexto.informar("Reportes", "Registre otro cliente para ver como esta conectado con " + actual.getNombre() + ".");
             return;
         }
-        // un reporte solo consulta: no se usa ejecutar(), que refrescaria todo y borraria el resaltado
         AnalisisGastos analisis = new AnalisisGastos(contexto.sistema());
         contexto.conManejo(() -> {
             dibujo.mostrar(analisis.grafoTransferencias(), id -> contexto.sistema().buscarCliente(id).getNombre());
@@ -168,7 +163,6 @@ final class PanelReportes extends JPanel implements Refrescable {
         if (antes != null) {
             otroCliente.setSelectedItem(antes);
         }
-        // los datos cambiaron (u otro cliente): el resultado anterior ya no aplica
         modelo.setFilas(ModeloTabla.nuevasFilas());
         explicacion.setText("Elija un reporte y pulse Generar.");
         dibujo.mostrar(new AnalisisGastos(contexto.sistema()).grafoTransferencias(),

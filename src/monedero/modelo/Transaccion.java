@@ -3,20 +3,6 @@ package monedero.modelo;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Registro de una operacion. Todo es inmutable menos la marca de reversion:
- * una transaccion revertida NO se borra del historial (queda como evidencia),
- * solo deja de tener efecto sobre saldos y puntos.
- *
- * Una transferencia es UN solo objeto que queda en el historial de los dos monederos; efectoSobre() dice cuanto
- * cambia el saldo de cada uno.
- *
- * Dinero en long (unidades enteras): con double los redondeos harian fallar
- * la verificacion de integridad.
- *
- * Los puntos se calculan una vez y se guardan aqui, asi al revertir se
- * descuentan exactamente los mismos aunque cambien las reglas o el rango.
- */
 public class Transaccion {
 
     private final String id;
@@ -32,17 +18,12 @@ public class Transaccion {
     private final int bonoPuntos;
     private LocalDateTime fechaReversion;
 
-    /** Sin bono de rango. */
     public Transaccion(String id, TipoTransaccion tipo, long monto, long comision,
                        String origenId, String destinoId, Categoria categoria,
                        LocalDateTime fecha, String descripcion, int puntos) {
         this(id, tipo, monto, comision, origenId, destinoId, categoria, fecha, descripcion, puntos, 0);
     }
 
-    /**
-     * @param puntos     total de puntos que da (base + bono)
-     * @param bonoPuntos parte de esos puntos que viene del bono del rango
-     */
     public Transaccion(String id, TipoTransaccion tipo, long monto, long comision,
                        String origenId, String destinoId, Categoria categoria,
                        LocalDateTime fecha, String descripcion, int puntos, int bonoPuntos) {
@@ -86,12 +67,6 @@ public class Transaccion {
         this.bonoPuntos = bonoPuntos;
     }
 
-    /**
-     * Cambio de saldo que produjo esta transaccion en el monedero indicado:
-     * el origen pierde monto + comision, el destino gana monto, otro 0.
-     * Es el efecto original aunque este revertida (lo usa la reversion para
-     * deshacerlo); para el efecto actual ver efectoVigenteSobre.
-     */
     public long efectoSobre(String monederoId) {
         if (monederoId == null) {
             return 0;
@@ -105,12 +80,10 @@ public class Transaccion {
         return 0;
     }
 
-    /** Efecto que cuenta hoy: 0 si fue revertida. */
     public long efectoVigenteSobre(String monederoId) {
         return isRevertida() ? 0 : efectoSobre(monederoId);
     }
 
-    /** Puntos que cuenta hoy: 0 si fue revertida. */
     public int puntosVigentes() {
         return isRevertida() ? 0 : puntos;
     }
@@ -170,7 +143,6 @@ public class Transaccion {
         return descripcion;
     }
 
-    /** Parte de los puntos que vino del bono del rango. */
     public int getBonoPuntos() {
         return bonoPuntos;
     }

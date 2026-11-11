@@ -3,11 +3,6 @@ package monedero.servicio;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Reloj simulado. Todo el sistema pide la hora aqui en vez de a
- * LocalDateTime.now(), asi las transacciones programadas (fase 4) se pueden
- * probar y mostrar con "avanzar dias" sin esperar tiempo real.
- */
 public class Reloj {
 
     private LocalDateTime actual;
@@ -34,7 +29,6 @@ public class Reloj {
         actual = actual.plusDays(dias);
     }
 
-    /** Mueve el reloj a la fecha indicada (si ya paso, no hace nada: nunca retrocede). */
     public void avanzarHasta(LocalDateTime fecha) {
         if (fecha.isAfter(actual)) {
             actual = fecha;

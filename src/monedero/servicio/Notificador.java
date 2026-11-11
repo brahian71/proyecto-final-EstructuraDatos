@@ -9,13 +9,6 @@ import monedero.modelo.TipoNotificacion;
 
 import java.time.LocalDateTime;
 
-/**
- * Buzon de notificaciones por cliente. Cada buzon es una ListaCircular de
- * capacidad fija: se conservan las CAPACIDAD mas recientes y las viejas se
- * sobrescriben en O(1), sin que la memoria crezca con el tiempo.
- *
- * Costos: notificar O(1) (hash + agregar circular), leer buzon O(CAPACIDAD).
- */
 public class Notificador {
 
     public static final int CAPACIDAD = 10;
@@ -31,7 +24,6 @@ public class Notificador {
         buzon.agregar(new Notificacion(tipo, mensaje, fecha));
     }
 
-    /** De la mas vieja a la mas reciente. */
     public Iterable<Notificacion> buzon(String clienteId) {
         ListaCircular<Notificacion> buzon = buzones.obtener(clienteId);
         return buzon == null ? new ListaEnlazada<>() : buzon;

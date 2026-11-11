@@ -3,15 +3,6 @@ package monedero.estructuras;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Pila con nodos enlazados: la cima es el primer nodo, asi apilar y
- * desapilar solo tocan la cabeza.
- *
- * Costos:
- *   apilar / desapilar / cima   O(1)
- *   tamanio / estaVacia         O(1)
- *   recorrido                   O(n)  de la cima al fondo
- */
 public class PilaEnlazada<T> implements Pila<T> {
 
     private static class Nodo<T> {

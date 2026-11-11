@@ -21,33 +21,10 @@ import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoTransaccion;
 import monedero.modelo.Transaccion;
 
-/**
- * Fachada del monedero: la interfaz (consola o grafica) solo habla con esta
- * clase. Funcionalidades basicas: depositos, retiros, transferencias,
- * saldo e historial, mas puntos y rangos, comisiones, canje, la reversion
- * (pila por cliente) y las notificaciones (lista circular por cliente).
- *
- * Estructuras:
- *   clientes, monederos  TablaHash      buscar por id O(1) promedio
- *   registroPuntos       ArbolAVL       clientes ordenados por puntos
- *   programador          Monticulo      transacciones programadas por fecha
- *   usuarios             TablaHash      inicio de sesion por nombre de usuario
- *   transacciones        ListaEnlazada  registro global en orden, para
- *                                       reportes y grafos (fase 5)
- */
 public class SistemaMonedero {
 
-    /**
-     * Por debajo de este saldo (en unidades de moneda), despues de un retiro o
-     * envio, se avisa. Con pesos colombianos: $50.000.
-     */
     public static final long UNIDADES_SALDO_BAJO = 500;
 
-    /**
-     * Monto maximo por transaccion ($1.000 millones). Ademas de ser un limite
-     * razonable para un monedero, evita que los puntos (int) se desborden:
-     * una transaccion da como maximo 300.000 puntos base.
-     */
     public static final long MONTO_MAXIMO = 1_000_000_000L;
 
     private final Mapa<String, Cliente> clientes = new TablaHash<>();
@@ -86,11 +63,7 @@ public class SistemaMonedero {
         this.calculadoraPuntos = calculadoraPuntos;
     }
 
-    // ------------------------------------------------------------------ clientes y monederos
-
-    /** Crea el cliente con un monedero PRINCIPAL. */
     public Cliente registrarCliente(String nombre) {
-        // el consecutivo solo avanza si el cliente es valido (un nombre vacio no gasta un id)
         Cliente cliente = new Cliente(String.format("C%03d", consecutivoCliente + 1), nombre);
         consecutivoCliente++;
         clientes.poner(cliente.getId(), cliente);
@@ -99,11 +72,6 @@ public class SistemaMonedero {
         return cliente;
     }
 
-    /**
-     * Registra un cliente junto con su usuario para iniciar sesion. Primero se
-     * validan usuario y contrasena, asi un dato invalido no deja un cliente
-     * creado sin usuario.
-     */
     public Cliente registrarClienteConUsuario(String nombre, String nombreUsuario, String contrasena) {
         usuarios.validarNuevo(nombreUsuario, contrasena);
         Cliente cliente = registrarCliente(nombre);
@@ -144,8 +112,6 @@ public class SistemaMonedero {
         return monederos.contiene(monederoId);
     }
 
-    // ------------------------------------------------------------------ operaciones basicas
-
     public Transaccion depositar(String monederoId, long monto, String descripcion) {
         Monedero destino = buscarMonedero(monederoId);
         validarMonto(monto);
@@ -166,10 +132,6 @@ public class SistemaMonedero {
         return t;
     }
 
-    /**
-     * Si ambos monederos son del mismo cliente queda como MOVIMIENTO_INTERNO
-     * (sin puntos); si son de clientes distintos es TRANSFERENCIA.
-     */
     public Transaccion transferir(String origenId, String destinoId, long monto,
                                   Categoria categoria, String descripcion) {
         Monedero origen = buscarMonedero(origenId);
@@ -198,19 +160,6 @@ public class SistemaMonedero {
         return t;
     }
 
-    // ------------------------------------------------------------------ reversion
-
-    /**
-     * Revierte la transaccion mas reciente que inicio el cliente (cima de su
-     * pila) y recalcula sus puntos. La transaccion no se borra: queda en el
-     * historial marcada como REVERTIDA y deja de contar en saldos y puntos.
-     *
-     * Se rechaza si el monedero que recibio la plata ya la gasto en algun
-     * momento posterior (ver Monedero.saldoMinimoDesde): quitarla dejaria un
-     * saldo negativo en la historia.
-     *
-     * Costo: O(1) la pila + O(n) revisar el historial del destino.
-     */
     public Transaccion revertirUltima(String clienteId) {
         Cliente cliente = buscarCliente(clienteId);
         if (!cliente.tieneReversibles()) {
@@ -252,18 +201,11 @@ public class SistemaMonedero {
         return t;
     }
 
-    /** La que se revertiria, o null si no hay ninguna. */
     public Transaccion proximaReversible(String clienteId) {
         Cliente cliente = buscarCliente(clienteId);
         return cliente.tieneReversibles() ? cliente.ultimaReversible() : null;
     }
 
-    // ------------------------------------------------------------------ puntos y canje
-
-    /**
-     * Canjea puntos disponibles por un beneficio. El bono se deposita en el
-     * monedero principal como transaccion BONO (no da puntos, no se revierte).
-     */
     public void canjear(String clienteId, Beneficio beneficio) {
         Cliente cliente = buscarCliente(clienteId);
         if (cliente.getPuntosDisponibles() < beneficio.getCostoPuntos()) {
@@ -299,7 +241,6 @@ public class SistemaMonedero {
         return registroPuntos.ranking(n);
     }
 
-    /** Bono de 50 unidades en pesos segun la escala. */
     public long montoBono() {
         return calculadoraPuntos.pesos(Beneficio.UNIDADES_BONO);
     }
@@ -316,18 +257,14 @@ public class SistemaMonedero {
         return registroPuntos;
     }
 
-    /** Puntos (base + bono del rango) que daria hoy; la interfaz los muestra antes de confirmar. */
     public int cotizarPuntos(TipoTransaccion tipo, long monto, String monederoOrigenId) {
         int base = calculadoraPuntos.calcular(tipo, monto);
         return base + bonoPorRango(tipo, base, monederoOrigenId);
     }
 
-    /** Comision que se cobraria hoy; la interfaz la muestra antes de confirmar. */
     public long cotizarComision(TipoTransaccion tipo, long monto, String monederoOrigenId) {
         return calcularComision(tipo, monto, buscarMonedero(monederoOrigenId));
     }
-
-    // ------------------------------------------------------------------ consultas
 
     public long consultarSaldo(String monederoId) {
         return buscarMonedero(monederoId).getSaldo();
@@ -357,11 +294,6 @@ public class SistemaMonedero {
         return programador;
     }
 
-    /**
-     * Avanza el reloj simulado ejecutando, en orden de fecha, las
-     * transacciones programadas que vencen en ese lapso.
-     * @return cuantas ejecuciones programadas se procesaron
-     */
     public int avanzarDias(int dias) {
         if (dias < 0) {
             throw new OperacionInvalidaException("No se puede retroceder el reloj: " + dias);
@@ -377,18 +309,11 @@ public class SistemaMonedero {
         return reloj;
     }
 
-    /**
-     * Cliente que gana los puntos de una transaccion: el dueno del destino en
-     * un deposito, el del origen en el resto. Lo usa tambien la integridad.
-     */
     public String clienteQueGanaPuntos(Transaccion t) {
         String monederoId = t.getTipo().requiereOrigen() ? t.getOrigenId() : t.getDestinoId();
         return buscarMonedero(monederoId).getClienteId();
     }
 
-    // ------------------------------------------------------------------ apoyo
-
-    /** La paga el dueno del monedero origen, con su rango y beneficios de hoy. */
     private long calcularComision(TipoTransaccion tipo, long monto, Monedero origen) {
         return politicaComision.calcular(tipo, monto, buscarCliente(origen.getClienteId()), reloj.ahora());
     }
@@ -402,11 +327,6 @@ public class SistemaMonedero {
                 reloj.ahora(), descripcion, base + bono, bono);
     }
 
-    /**
-     * Puntos extra segun el rango de quien paga (Plata 10 %, Oro 20 %,
-     * Platino 30 %), solo en retiros y transferencias. Se usa el rango que
-     * tenia ANTES de esta transaccion.
-     */
     private int bonoPorRango(TipoTransaccion tipo, int base, String origenId) {
         if (!tipo.recibeBonoPorRango() || origenId == null) {
             return 0;
@@ -441,7 +361,6 @@ public class SistemaMonedero {
         }
     }
 
-    /** Lo usa tambien el programador antes de aceptar una programada. */
     static void validarMonto(long monto) {
         if (monto <= 0) {
             throw new OperacionInvalidaException("El monto debe ser mayor que cero: " + monto);

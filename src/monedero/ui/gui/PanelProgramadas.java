@@ -22,10 +22,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
-/**
- * Transacciones programadas: la tabla muestra la cola de prioridad en el
- * orden en que se van a ejecutar (de la mas proxima a la mas lejana).
- */
 final class PanelProgramadas extends JPanel implements Refrescable {
 
     private final Contexto contexto;
@@ -50,10 +46,11 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel lista = new JPanel(new BorderLayout(0, 6));
-        lista.setBorder(Contexto.tarjeta((contexto.esAdmin() ? "Pendientes de todos los clientes" : "Mis programadas")
-                + " (cola de prioridad: monticulo por fecha)"));
+        Estilo.comoTarjeta(lista, (contexto.esAdmin() ? "Pendientes de todos los clientes" : "Mis programadas")
+                + " (cola de prioridad: monticulo por fecha)");
+        Estilo.anchos(tabla, 50, 125, 120, 105, 60, 60, 95, 75, 50, 160);
         lista.add(new JScrollPane(tabla), BorderLayout.CENTER);
-        JButton cancelar = new JButton("Cancelar la seleccionada");
+        JButton cancelar = Estilo.botonSecundario("Cancelar la seleccionada");
         cancelar.addActionListener(e -> cancelar());
         lista.add(cancelar, BorderLayout.SOUTH);
         add(lista, BorderLayout.CENTER);
@@ -71,7 +68,7 @@ final class PanelProgramadas extends JPanel implements Refrescable {
 
     private JPanel formulario() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(Contexto.tarjeta("Programar para el cliente actual"));
+        Estilo.comoTarjeta(panel, "Programar para el cliente actual");
         String[] etiquetas = {"Tipo", "Desde", "Hacia", "Monto", "Categoria", "Frecuencia",
                 "Primera en (dias)", "Veces (0 = sin limite)", "Descripcion"};
         java.awt.Component[] campos = {tipo, origen, destino, monto, categoria, frecuencia, enDias, veces, descripcion};
@@ -85,7 +82,7 @@ final class PanelProgramadas extends JPanel implements Refrescable {
             g.gridx = 1;
             panel.add(campos[i], g);
         }
-        JButton programar = new JButton("Programar");
+        JButton programar = Estilo.botonPrimario("Programar");
         programar.addActionListener(e -> programar());
         g.gridx = 0;
         g.gridy = etiquetas.length;
@@ -106,14 +103,8 @@ final class PanelProgramadas extends JPanel implements Refrescable {
         llenarDestino();
     }
 
-    /**
-     * Un deposito programado entra a un monedero del cliente actual; una
-     * transferencia puede ir a cualquier monedero. Si se ofrecieran todos en
-     * el deposito, quedaria programado a nombre de otro cliente.
-     */
     private void llenarDestino() {
         contexto.llenarMonederos(destino, tipo.getSelectedItem() != TipoTransaccion.DEPOSITO);
-        // en una transferencia, que no quede por defecto el mismo monedero de origen
         if (tipo.getSelectedItem() == TipoTransaccion.TRANSFERENCIA && origen.getSelectedItem() != null
                 && origen.getSelectedItem().equals(destino.getSelectedItem())) {
             for (int i = 0; i < destino.getItemCount(); i++) {
@@ -166,13 +157,12 @@ final class PanelProgramadas extends JPanel implements Refrescable {
 
     @Override
     public void refrescar() {
-        // origen: monederos del cliente actual; destino: cualquiera (en un deposito, uno del cliente)
         contexto.llenarMonederos(origen, false);
         llenarDestino();
         Coleccion<Object[]> filas = ModeloTabla.nuevasFilas();
         for (OperacionProgramada op : contexto.sistema().getProgramador().pendientes()) {
             if (!contexto.esAdmin() && !op.getClienteId().equals(contexto.cliente().getId())) {
-                continue; // un cliente solo ve las suyas
+                continue;
             }
             String restantes = op.getEjecucionesTotales() == OperacionProgramada.SIN_LIMITE ? "sin limite"
                     : String.valueOf(op.getEjecucionesTotales() - op.getEjecucionesHechas());

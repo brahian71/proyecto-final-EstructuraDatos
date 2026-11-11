@@ -16,26 +16,8 @@ import monedero.modelo.TipoTransaccion;
 
 import java.time.LocalDateTime;
 
-/**
- * Transacciones programadas y recurrentes con una COLA DE PRIORIDAD
- * (monticulo binario de minimos) ordenada por fecha de ejecucion.
- *
- * Simulacion por eventos: avanzarHasta(destino) saca de la cola la
- * operacion mas proxima mientras su fecha sea <= destino, mueve el reloj a
- * esa fecha exacta, la ejecuta y, si es recurrente, la vuelve a meter con
- * su siguiente fecha. Asi cada transaccion queda con la fecha en que debia
- * ocurrir y el historial sigue en orden cronologico.
- *
- * Si una ejecucion falla (saldo insuficiente, monedero inexistente) se avisa
- * al cliente, se cuenta el fallo y se sigue con la siguiente fecha.
- *
- * Costos: programar O(log n); procesar k ejecuciones O(k log n);
- * cancelar O(n) (hay que encontrarla en el arreglo del monticulo);
- * recordatorios O(n) (se revisan todas las pendientes).
- */
 public class ProgramadorTransacciones {
 
-    /** Se avisa cuando falta esto o menos para la ejecucion. */
     public static final int HORAS_RECORDATORIO = 24;
 
     private final SistemaMonedero sistema;
@@ -48,11 +30,6 @@ public class ProgramadorTransacciones {
         this.sistema = sistema;
     }
 
-    /**
-     * @param origenId        null en depositos
-     * @param destinoId       null en retiros
-     * @param ejecuciones     cuantas veces (OperacionProgramada.SIN_LIMITE para siempre); UNA_VEZ ignora este valor
-     */
     public OperacionProgramada programar(TipoTransaccion tipo, String origenId, String destinoId, long monto,
                                          Categoria categoria, String descripcion, Frecuencia frecuencia,
                                          LocalDateTime inicio, int ejecuciones) {
@@ -63,12 +40,10 @@ public class ProgramadorTransacciones {
         if (inicio.isBefore(sistema.getReloj().ahora())) {
             throw new OperacionInvalidaException("La primera ejecucion no puede ser en el pasado: " + inicio);
         }
-        // el duenio es quien paga (origen) o, en un deposito, quien recibe
         Monedero duenio = sistema.buscarMonedero(tipo == TipoTransaccion.DEPOSITO ? destinoId : origenId);
         if (tipo == TipoTransaccion.TRANSFERENCIA) {
             sistema.buscarMonedero(destinoId);
             if (origenId.equals(destinoId)) {
-                // si no, todas sus ejecuciones fallarian
                 throw new OperacionInvalidaException("No se puede programar una transferencia al mismo monedero");
             }
         }
@@ -91,19 +66,17 @@ public class ProgramadorTransacciones {
         op.cancelar();
     }
 
-    /** @return cuantas ejecuciones se procesaron (exitosas o no). */
     public int avanzarHasta(LocalDateTime destino) {
         int procesadas = 0;
         while (!cola.estaVacia() && !cola.verPrimero().getProximaEjecucion().isAfter(destino)) {
             OperacionProgramada op = cola.extraer();
-            // en un salto largo, los recordatorios salen en su momento (24 h antes), no al final
             sistema.getReloj().avanzarHasta(op.getProximaEjecucion().minusHours(HORAS_RECORDATORIO));
             enviarRecordatorios();
             sistema.getReloj().avanzarHasta(op.getProximaEjecucion());
             boolean exitosa = ejecutar(op);
             op.registrarEjecucion(exitosa);
             if (!op.terminada()) {
-                cola.insertar(op); // vuelve con su nueva fecha
+                cola.insertar(op);
             }
             procesadas++;
         }
@@ -112,7 +85,6 @@ public class ProgramadorTransacciones {
         return procesadas;
     }
 
-    /** Pendientes de la mas proxima a la mas lejana (no modifica la cola). */
     public Coleccion<OperacionProgramada> pendientes() {
         return cola.ordenados();
     }
@@ -129,11 +101,6 @@ public class ProgramadorTransacciones {
         return cola.tamanio();
     }
 
-    /** Propiedad de monticulo (la usa la integridad). */
-    /**
-     * Toda programada que no ha terminado debe estar en la cola, y solo esas
-     * (la usa la integridad). O(n).
-     */
     public boolean colaConsistente() {
         int activas = 0;
         for (OperacionProgramada op : porId.valores()) {
@@ -148,8 +115,6 @@ public class ProgramadorTransacciones {
         return cola.esValido();
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private boolean ejecutar(OperacionProgramada op) {
         String descripcion = "Programada " + op.getId() + (op.getDescripcion().isEmpty() ? "" : ": " + op.getDescripcion());
         try {
@@ -162,8 +127,6 @@ public class ProgramadorTransacciones {
             }
             return true;
         } catch (RuntimeException e) {
-            // cualquier falla cuenta como ejecucion fallida: la operacion ya salio de la cola y,
-            // si la excepcion escapara, no volveria a entrar y se perderia
             sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.FALLO_PROGRAMADA,
                     "No se pudo ejecutar " + op.getId() + " (" + op.getTipo() + " " + Moneda.pesos(op.getMonto()) + "): "
                             + e.getMessage(), sistema.getReloj().ahora());
@@ -171,7 +134,6 @@ public class ProgramadorTransacciones {
         }
     }
 
-    /** Avisa una vez por ejecucion cuando falta HORAS_RECORDATORIO o menos. */
     private void enviarRecordatorios() {
         LocalDateTime ahora = sistema.getReloj().ahora();
         LocalDateTime limite = ahora.plusHours(HORAS_RECORDATORIO);

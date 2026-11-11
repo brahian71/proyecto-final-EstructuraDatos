@@ -3,11 +3,6 @@ package monedero.modelo;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Una entrada del historial de puntos de un cliente. cantidad es positiva
- * al ganar y negativa al revertir o canjear, asi la suma del historial es
- * igual a los puntos disponibles (lo comprueba la integridad).
- */
 public class MovimientoPuntos {
 
     public enum Tipo {

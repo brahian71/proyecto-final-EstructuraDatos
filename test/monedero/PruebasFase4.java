@@ -22,10 +22,6 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 
-/**
- * Pruebas de la fase 4: monticulo binario y transacciones programadas.
- * Sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase4 {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 1, 8, 0);
@@ -60,8 +56,6 @@ public class PruebasFase4 {
         }
     }
 
-    // ------------------------------------------------------------------ monticulo
-
     private static void monticuloOrdena() {
         MonticuloBinario<Integer> m = new MonticuloBinario<>(Comparator.naturalOrder());
         for (int v : new int[]{5, 3, 8, 1, 9, 2, 7}) {
@@ -78,7 +72,7 @@ public class PruebasFase4 {
     private static void monticuloRepetidosYCrecer() {
         MonticuloBinario<Integer> m = new MonticuloBinario<>(Comparator.naturalOrder());
         for (int i = 0; i < 2000; i++) {
-            m.insertar((i * 7919) % 500); // valores repetidos y desordenados
+            m.insertar((i * 7919) % 500);
         }
         verificar("monticulo: valido con 2000", m.esValido() && m.tamanio() == 2000);
         int anterior = Integer.MIN_VALUE;
@@ -120,8 +114,6 @@ public class PruebasFase4 {
         m.ordenados();
         verificar("monticulo: ordenados no saca nada", m.tamanio() == 3 && m.verPrimero() == 1);
     }
-
-    // ------------------------------------------------------------------ programadas
 
     private static void frecuenciaMensualFinDeMes() {
         LocalDateTime enero31 = LocalDateTime.of(2027, 1, 31, 9, 0);
@@ -230,7 +222,6 @@ public class PruebasFase4 {
         s.avanzarDias(1);
         verificar("recordatorio: no se repite para la misma fecha", contar(s, ana, TipoNotificacion.RECORDATORIO) == 1);
         s.avanzarDias(70);
-        // dos ejecuciones mas dentro del salto: cada una con su recordatorio
         verificar("recordatorio: tambien dentro de un salto largo", contar(s, ana, TipoNotificacion.RECORDATORIO) == 3);
     }
 
@@ -277,8 +268,6 @@ public class PruebasFase4 {
         }
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private static SistemaMonedero nuevo() {
         return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);
     }
@@ -291,7 +280,6 @@ public class PruebasFase4 {
         return cliente.getMonederos().iterator().next().getId();
     }
 
-    /** Ultima letra de la descripcion de cada transaccion (las programadas llevan "Programada P00x: ..."). */
     private static String descripciones(SistemaMonedero s, String monedero) {
         StringBuilder sb = new StringBuilder();
         for (Transaccion t : s.historial(monedero)) {

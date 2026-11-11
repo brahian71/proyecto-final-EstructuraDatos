@@ -17,11 +17,6 @@ import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.util.function.Function;
 
-/**
- * Dibuja un grafo dirigido con los vertices en circulo y las aristas como
- * flechas; el grosor depende del peso. Se pueden resaltar aristas (por
- * ejemplo, el camino del BFS o un ciclo del DFS).
- */
 final class PanelGrafo extends JPanel {
 
     private static final int RADIO_NODO = 28;
@@ -42,7 +37,6 @@ final class PanelGrafo extends JPanel {
         repaint();
     }
 
-    /** Resalta las aristas consecutivas del camino v0 -> v1 -> ... */
     void resaltar(Coleccion<String> camino) {
         this.resaltado = camino;
         repaint();
@@ -95,7 +89,7 @@ final class PanelGrafo extends JPanel {
             int ancho = fm.stringWidth(etiqueta);
             int ex = (int) p.x - ancho / 2;
             int ey = (int) p.y + RADIO_NODO + 14;
-            g.setColor(Color.WHITE); // fondo para que las flechas no tapen el nombre
+            g.setColor(Color.WHITE);
             g.fillRect(ex - 3, ey - fm.getAscent(), ancho + 6, fm.getHeight());
             g.setColor(Color.DARK_GRAY);
             g.drawString(etiqueta, ex, ey);
@@ -113,10 +107,6 @@ final class PanelGrafo extends JPanel {
         return false;
     }
 
-    /**
-     * Flecha de borde a borde de los circulos. Si tambien existe la arista
-     * contraria, se desplaza a un lado para que las dos no se encimen.
-     */
     private void flecha(Graphics2D g, Point2D.Double a, Point2D.Double b, boolean hayContraria, String texto) {
         double dx = b.x - a.x;
         double dy = b.y - a.y;

@@ -18,10 +18,6 @@ import monedero.servicio.SistemaMonedero;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-/**
- * Pruebas de la fase 5: cola FIFO, grafo dirigido (BFS, DFS, ciclos) y los
- * reportes de patrones de gasto. Sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase5 {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 1, 8, 0);
@@ -55,8 +51,6 @@ public class PruebasFase5 {
         }
     }
 
-    // ------------------------------------------------------------------ cola
-
     private static void colaFifo() {
         Cola<String> c = new ColaEnlazada<>();
         c.encolar("A");
@@ -74,8 +68,6 @@ public class PruebasFase5 {
         lanza("cola vacia: desencolar lanza", NoSuchElementException.class, c::desencolar);
         verificar("cola vacia: iterador sin elementos", !c.iterator().hasNext());
     }
-
-    // ------------------------------------------------------------------ grafo
 
     private static void grafoAcumulaPesos() {
         GrafoDirigido<String> g = new GrafoDirigido<>();
@@ -101,7 +93,6 @@ public class PruebasFase5 {
 
     private static void bfsCaminoMasCorto() {
         GrafoDirigido<String> g = new GrafoDirigido<>();
-        // largo: A-B-C-D-E ; corto: A-X-E
         g.agregarArista("A", "B", 1);
         g.agregarArista("B", "C", 1);
         g.agregarArista("C", "D", 1);
@@ -147,18 +138,16 @@ public class PruebasFase5 {
         g.agregarArista("A", "B", 1);
         g.agregarArista("A", "C", 1);
         g.agregarArista("B", "D", 1);
-        g.agregarArista("C", "D", 1); // diamante: dos caminos a D pero ningun ciclo
+        g.agregarArista("C", "D", 1);
         verificar("ciclos: diamante no es ciclo", g.ciclos().estaVacia());
     }
-
-    // ------------------------------------------------------------------ reportes
 
     private static void reporteGastoPorCategoria() {
         Escenario e = new Escenario();
         e.s.retirar(e.a, 1_000, Categoria.TRANSPORTE, "");
         e.s.retirar(e.a, 5_000, Categoria.ALIMENTACION, "");
         e.s.retirar(e.a, 2_000, Categoria.TRANSPORTE, "");
-        e.s.transferir(e.a, e.ahorrosAna, 9_000, Categoria.AHORRO, ""); // interno: no es gasto
+        e.s.transferir(e.a, e.ahorrosAna, 9_000, Categoria.AHORRO, "");
         Coleccion<FilaReporte> filas = e.analisis.gastoPorCategoria(e.ana.getId());
         verificar("gasto: ordenado de mayor a menor", filas.tamanio() == 2
                 && filas.obtener(0).etiqueta().equals("ALIMENTACION") && filas.obtener(1).valor() == 3_000);
@@ -180,7 +169,7 @@ public class PruebasFase5 {
     private static void reporteSecuenciasNoMezclaClientes() {
         Escenario e = new Escenario();
         e.s.retirar(e.a, 1_000, Categoria.SALUD, "");
-        e.s.retirar(e.b, 1_000, Categoria.EDUCACION, ""); // de otro cliente: no forma SALUD -> EDUCACION
+        e.s.retirar(e.b, 1_000, Categoria.EDUCACION, "");
         verificar("secuencias: no une gastos de clientes distintos",
                 e.analisis.secuenciasFrecuentes(null, 10).estaVacia());
     }
@@ -226,9 +215,6 @@ public class PruebasFase5 {
         verificar("revertidas: no cuentan como gasto", e.analisis.gastoPorCategoria(e.ana.getId()).estaVacia());
     }
 
-    // ------------------------------------------------------------------ apoyo
-
-    /** Tres clientes con saldo; Ana tiene ademas un monedero de ahorros. */
     private static class Escenario {
         final SistemaMonedero s = new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION,
                 CalculadoraPuntos.UNIDAD_UN_PESO);

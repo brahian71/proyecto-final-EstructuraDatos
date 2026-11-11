@@ -3,7 +3,6 @@ package monedero.modelo;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/** Aviso para un cliente. Lo unico que cambia despues de creada es si ya se leyo. */
 public class Notificacion {
 
     private final TipoNotificacion tipo;

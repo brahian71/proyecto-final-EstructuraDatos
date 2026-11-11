@@ -5,16 +5,6 @@ import monedero.estructuras.ListaEnlazada;
 
 import java.util.Objects;
 
-/**
- * Un monedero de un cliente (un cliente puede tener varios).
- *
- * El saldo solo cambia por aplicar(), que al mismo tiempo guarda la
- * transaccion en el historial. Asi saldo == suma de efectos del historial,
- * que es justo lo que comprueba el VerificadorIntegridad.
- *
- * Historial en ListaEnlazada: agregar al final O(1) y se recorre en orden
- * cronologico con el iterador O(n).
- */
 public class Monedero {
 
     private final String id;
@@ -40,10 +30,6 @@ public class Monedero {
         this.tipo = Objects.requireNonNull(tipo, "El tipo no puede ser nulo");
     }
 
-    /**
-     * Aplica la transaccion: ajusta el saldo y la agrega al historial.
-     * El servicio ya valido el saldo; esto es la ultima barrera.
-     */
     public void aplicar(Transaccion transaccion) {
         if (!transaccion.involucra(id)) {
             throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no involucra al monedero " + id);
@@ -59,11 +45,6 @@ public class Monedero {
         historial.agregar(transaccion);
     }
 
-    /**
-     * Deshace el efecto de una transaccion que ya esta en el historial. No la
-     * saca del historial: el servicio la marca como revertida despues de
-     * ajustar los monederos involucrados.
-     */
     public void revertir(Transaccion transaccion) {
         if (!transaccion.involucra(id)) {
             throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no involucra al monedero " + id);
@@ -78,12 +59,6 @@ public class Monedero {
         saldo = nuevoSaldo;
     }
 
-    /**
-     * Menor saldo que tuvo el monedero desde la transaccion indicada
-     * (incluida) hasta hoy. Si se quita un ingreso de X, todos esos saldos
-     * bajan X, asi que solo se puede revertir si este minimo es >= X: si no,
-     * esa plata ya se gasto en algun momento. O(n).
-     */
     public long saldoMinimoDesde(Transaccion transaccion) {
         long corriente = 0;
         long minimo = Long.MAX_VALUE;
@@ -101,7 +76,6 @@ public class Monedero {
         return minimo;
     }
 
-    /** Solo lectura: quien recorre el historial no puede alterarlo. */
     public Iterable<Transaccion> getHistorial() {
         return historial;
     }
@@ -110,10 +84,6 @@ public class Monedero {
         return historial.tamanio();
     }
 
-    /**
-     * Solo para pruebas (mismo paquete): mete una transaccion sin tocar el
-     * saldo, para simular un dato corrupto y ver que la integridad lo detecta.
-     */
     void registrarSinAfectarSaldo(Transaccion transaccion) {
         historial.agregar(transaccion);
     }

@@ -4,26 +4,8 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/**
- * Monticulo binario de minimos guardado en un arreglo: es un arbol binario
- * completo donde cada padre es menor o igual que sus hijos, asi el minimo
- * siempre esta en la posicion 0.
- *
- *   padre(i) = (i - 1) / 2     hijos(i) = 2i + 1 y 2i + 2
- *
- * insertar: se pone al final y se SUBE mientras sea menor que su padre.
- * extraer:  se saca la raiz, el ultimo pasa a la raiz y se HUNDE mientras
- *           sea mayor que su hijo menor.
- *
- * Costos:
- *   insertar / extraer      O(log n)  (la altura del arbol completo es log n)
- *   verPrimero              O(1)
- *   eliminar(elemento)      O(n) buscarlo + O(log n) reacomodar
- *   ordenados()             O(n log n) (copia y extrae; no toca el original)
- *
- * Una lista ordenada daria verPrimero O(1) pero insertar O(n); una lista sin
- * orden, insertar O(1) pero extraer O(n). El monticulo es O(log n) en ambas.
- */
+// Arbol binario completo en un arreglo: padre(i) = (i - 1) / 2, hijos 2i + 1 y 2i + 2.
+// Cada padre es <= que sus hijos, asi el minimo siempre esta en la posicion 0.
 public class MonticuloBinario<T> implements ColaPrioridad<T> {
 
     private static final int CAPACIDAD_INICIAL = 16;
@@ -84,7 +66,6 @@ public class MonticuloBinario<T> implements ColaPrioridad<T> {
         return tamanio == 0;
     }
 
-    /** Todos los elementos de menor a mayor, sin modificar este monticulo. */
     public Coleccion<T> ordenados() {
         MonticuloBinario<T> copia = new MonticuloBinario<>(comparador);
         copia.datos = datos.clone();
@@ -96,10 +77,6 @@ public class MonticuloBinario<T> implements ColaPrioridad<T> {
         return resultado;
     }
 
-    /**
-     * Revisa recursivamente la propiedad de monticulo: cada nodo es <= que
-     * sus hijos. Lo usa la verificacion de integridad. O(n).
-     */
     public boolean esValido() {
         return esValido(0);
     }
@@ -119,15 +96,11 @@ public class MonticuloBinario<T> implements ColaPrioridad<T> {
         return esValido(izq) && esValido(der);
     }
 
-    // ------------------------------------------------------------------ apoyo
-
-    /** Saca el elemento de la posicion i: el ultimo ocupa su lugar y se reacomoda. */
     private void quitarEn(int i) {
         tamanio--;
         if (i < tamanio) {
             datos[i] = datos[tamanio];
             datos[tamanio] = null;
-            // el que llego puede ser menor que su nuevo padre o mayor que sus hijos
             if (i > 0 && menor(i, (i - 1) / 2)) {
                 subir(i);
             } else {

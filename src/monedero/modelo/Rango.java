@@ -1,18 +1,5 @@
 package monedero.modelo;
 
-/**
- * Rangos segun puntos acumulados (limites del enunciado, inclusivos):
- *   Bronce 0-500, Plata 501-1000, Oro 1001-5000, Platino mas de 5000.
- *
- * Beneficios del rango:
- *   descuentoTransferencia  % menos en la comision de las transferencias
- *   bonoPuntos              % de puntos extra en retiros y transferencias
- *                           ("bonos de puntos adicionales por ciertas transacciones")
- *
- * desdePuntos es la funcion de calculo directa O(1). El arbol balanceado
- * (fase 3) se usa para tener a los clientes ordenados y responder consultas
- * como "todos los clientes Oro", no para calcular el rango de uno solo.
- */
 public enum Rango {
 
     BRONCE(0, 500, 0, 0),
@@ -60,8 +47,7 @@ public enum Rango {
         return bonoPuntos;
     }
 
-    /** Puntos extra sobre los puntos base (division entera: 36 base en Plata = 3 extra). */
     public int bonoSobre(int puntosBase) {
-        return Math.toIntExact((long) puntosBase * bonoPuntos / 100); // en long para no desbordar
+        return Math.toIntExact((long) puntosBase * bonoPuntos / 100);
     }
 }

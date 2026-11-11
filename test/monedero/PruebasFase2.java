@@ -23,10 +23,6 @@ import monedero.servicio.VerificadorIntegridad;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-/**
- * Pruebas de la fase 2: pila, lista circular, reversion con recalculo de
- * puntos y notificaciones. Sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase2 {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 1, 8, 0);
@@ -63,8 +59,6 @@ public class PruebasFase2 {
         }
     }
 
-    // ------------------------------------------------------------------ pila
-
     private static void pilaLifo() {
         Pila<String> p = new PilaEnlazada<>();
         p.apilar("A");
@@ -86,8 +80,6 @@ public class PruebasFase2 {
         p.apilar(2);
         verificar("pila: se reutiliza tras vaciar", p.cima() == 2 && p.tamanio() == 1);
     }
-
-    // ------------------------------------------------------------------ lista circular
 
     private static void circularSinLlenar() {
         ListaCircular<String> l = new ListaCircular<>(5);
@@ -123,8 +115,6 @@ public class PruebasFase2 {
         lanza("circular vacia: primero lanza", NoSuchElementException.class, l::primero);
         lanza("circular: capacidad 0 lanza", IllegalArgumentException.class, () -> new ListaCircular<String>(0));
     }
-
-    // ------------------------------------------------------------------ reversion
 
     private static void revertirDeposito() {
         SistemaMonedero s = nuevo();
@@ -185,11 +175,6 @@ public class PruebasFase2 {
         verificar("revertir: proxima es null", s.proximaReversible(ana.getId()) == null);
     }
 
-    /**
-     * Bruno le manda 100 a Ana, Ana los gasta y luego deposita otros 100.
-     * El saldo actual de Ana alcanza, pero la plata de Bruno ya se uso:
-     * revertirla dejaria el historial de Ana en -100.
-     */
     private static void noRevertirPlataYaGastada() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
@@ -227,14 +212,11 @@ public class PruebasFase2 {
                 s.revertirUltima(c.getId());
                 revertidas++;
             } catch (OperacionInvalidaException e) {
-                // puede que la ultima no se pueda revertir; no es lo que se prueba aqui
             }
         }
         verificar("integridad: OK tras " + revertidas + " reversiones",
                 revertidas > 0 && new VerificadorIntegridad(s).verificar().esValido());
     }
-
-    // ------------------------------------------------------------------ notificaciones
 
     private static void notificaSaldoBajo() {
         SistemaMonedero s = nuevo();
@@ -295,8 +277,6 @@ public class PruebasFase2 {
         verificar("leidas: 0 tras marcar", notificador.noLeidas("C001") == 0);
         verificar("leidas: cliente sin buzon", notificador.noLeidas("C999") == 0);
     }
-
-    // ------------------------------------------------------------------ apoyo
 
     private static SistemaMonedero nuevo() {
         return new SistemaMonedero(new Reloj(INICIO), PoliticaComision.SIN_COMISION, CalculadoraPuntos.UNIDAD_UN_PESO);

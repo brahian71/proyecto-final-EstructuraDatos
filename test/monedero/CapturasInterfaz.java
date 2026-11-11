@@ -15,11 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDateTime;
 
-/**
- * Genera una imagen PNG de cada pestania de la interfaz (sin mostrar la
- * ventana) en docs/capturas. Sirve para revisar la interfaz y para el informe.
- * Uso: java -cp out monedero.CapturasInterfaz
- */
 public class CapturasInterfaz {
 
     public static void main(String[] args) throws Exception {
@@ -38,7 +33,7 @@ public class CapturasInterfaz {
     private static void capturar(File carpeta) throws Exception {
         SistemaMonedero sistema = new SistemaMonedero(new Reloj(LocalDateTime.of(2026, 10, 27, 8, 0)));
         DatosIniciales.cargar(sistema);
-        sistema.avanzarDias(10); // que se ejecuten algunas programadas
+        sistema.avanzarDias(10);
 
         VentanaPrincipal.aplicarAspecto();
         guardarLogin(sistema, carpeta);
@@ -63,7 +58,6 @@ public class CapturasInterfaz {
         }
         ventana.dispose();
 
-        // vista de un cliente (Ana): sin selector de clientes, reloj ni grafo
         Usuario ana = sistema.getUsuarios().iniciarSesion("ana", "ana123");
         VentanaPrincipal vistaCliente = new VentanaPrincipal(sistema, ana);
         vistaCliente.setSize(1280, 760);

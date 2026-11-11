@@ -4,14 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/**
- * Costos:
- *   agregar         O(1)
- *   eliminar(T)     O(n)  (hay que buscarlo)
- *   obtener(i)      O(n)  (hay que caminar i nodos)
- *   tamanio/vacia   O(1)
- *   recorrido total O(n)  con el iterador (con obtener(i) en un for seria O(n^2))
- */
 public class ListaEnlazada<T> implements Coleccion<T> {
 
     private static class Nodo<T> {
@@ -98,9 +90,7 @@ public class ListaEnlazada<T> implements Coleccion<T> {
         return new IteradorLista();
     }
 
-
     private class IteradorLista implements Iterator<T> {
-
         private Nodo<T> actual = cabeza;
 
         @Override

@@ -14,20 +14,6 @@ import monedero.modelo.Transaccion;
 
 import java.util.Comparator;
 
-/**
- * Analisis de patrones de gasto con GRAFOS DIRIGIDOS. Los tres grafos se
- * arman desde el registro global de transacciones (las revertidas no
- * cuentan), cada vez que se pide un reporte: O(T) con T transacciones.
- *
- *   transferencias  vertices = clientes,   A -> B si A le envio dinero a B
- *   monederos       vertices = monederos,  A -> B si paso dinero de A a B
- *                   (incluye movimientos entre monederos del mismo cliente)
- *   categorias      vertices = categorias, X -> Y si despues de gastar en X
- *                   el mismo cliente gasto en Y (secuencias de gasto)
- *
- * Gasto = retiro o transferencia (enviada a otro cliente) con categoria.
- * Los rankings se ordenan con el MonticuloBinario propio.
- */
 public class AnalisisGastos {
 
     private final SistemaMonedero sistema;
@@ -35,8 +21,6 @@ public class AnalisisGastos {
     public AnalisisGastos(SistemaMonedero sistema) {
         this.sistema = sistema;
     }
-
-    // ------------------------------------------------------------------ grafos
 
     public GrafoDirigido<String> grafoTransferencias() {
         GrafoDirigido<String> grafo = new GrafoDirigido<>();
@@ -64,14 +48,10 @@ public class AnalisisGastos {
         return grafo;
     }
 
-    /**
-     * @param clienteId null para todos los clientes; las secuencias nunca
-     *                  unen gastos de clientes distintos.
-     */
     public GrafoDirigido<Categoria> grafoCategorias(String clienteId) {
         GrafoDirigido<Categoria> grafo = new GrafoDirigido<>();
         Mapa<String, Categoria> ultimaDeCadaCliente = new TablaHash<>();
-        for (Transaccion t : sistema.getTransacciones()) { // ya estan en orden cronologico
+        for (Transaccion t : sistema.getTransacciones()) {
             String quien = clienteQueGasta(t);
             if (quien == null || (clienteId != null && !clienteId.equals(quien))) {
                 continue;
@@ -87,12 +67,9 @@ public class AnalisisGastos {
         return grafo;
     }
 
-    // ------------------------------------------------------------------ reportes
-
-    /** 1. Cuanto gasto el cliente en cada categoria, de mayor a menor. */
     public Coleccion<FilaReporte> gastoPorCategoria(String clienteId) {
         sistema.buscarCliente(clienteId);
-        Mapa<Categoria, long[]> totales = new TablaHash<>(); // [dinero, veces]
+        Mapa<Categoria, long[]> totales = new TablaHash<>();
         for (Transaccion t : sistema.getTransacciones()) {
             if (clienteId.equals(clienteQueGasta(t))) {
                 long[] acumulado = totales.obtener(t.getCategoria());
@@ -114,7 +91,6 @@ public class AnalisisGastos {
         return mayores(filas, filas.tamanio(), POR_VALOR);
     }
 
-    /** 2. Las n secuencias "categoria -> categoria" mas repetidas. */
     public Coleccion<FilaReporte> secuenciasFrecuentes(String clienteId, int n) {
         Coleccion<FilaReporte> filas = new ListaEnlazada<>();
         for (GrafoDirigido.Arista<Categoria> a : grafoCategorias(clienteId).aristas()) {
@@ -123,7 +99,6 @@ public class AnalisisGastos {
         return mayores(filas, n, POR_VECES);
     }
 
-    /** 3. Los n clientes que mas dinero reciben por transferencias (grado de entrada ponderado). */
     public Coleccion<FilaReporte> mayoresReceptores(int n) {
         GrafoDirigido<String> grafo = grafoTransferencias();
         Coleccion<FilaReporte> filas = new ListaEnlazada<>();
@@ -135,22 +110,16 @@ public class AnalisisGastos {
         return mayores(filas, n, POR_VALOR);
     }
 
-    /** 4. Ciclos de dinero entre clientes (A -> B -> C -> A), con DFS. Ids de cliente. */
     public Coleccion<Coleccion<String>> ciclosTransferencias() {
         return grafoTransferencias().ciclos();
     }
 
-    /**
-     * 5. Como esta conectado el cliente a con el b siguiendo transferencias
-     * (BFS: el camino con menos intermediarios). Vacio si no hay conexion.
-     */
     public Coleccion<String> conexion(String clienteA, String clienteB) {
         sistema.buscarCliente(clienteA);
         sistema.buscarCliente(clienteB);
         return grafoTransferencias().caminoMasCorto(clienteA, clienteB);
     }
 
-    /** 6. Por donde entra y sale el dinero de los monederos del cliente, de mayor a menor. */
     public Coleccion<FilaReporte> flujoMonederos(String clienteId) {
         Cliente cliente = sistema.buscarCliente(clienteId);
         GrafoDirigido<String> grafo = grafoMonederos();
@@ -166,8 +135,6 @@ public class AnalisisGastos {
         return mayores(filas, filas.tamanio(), POR_VALOR);
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private static final Comparator<FilaReporte> POR_VALOR =
             Comparator.comparingLong(FilaReporte::valor).reversed().thenComparing(FilaReporte::etiqueta);
     private static final Comparator<FilaReporte> POR_VECES =
@@ -175,7 +142,6 @@ public class AnalisisGastos {
                     .thenComparing(Comparator.comparingLong(FilaReporte::valor).reversed())
                     .thenComparing(FilaReporte::etiqueta);
 
-    /** Los n primeros segun el comparador, usando el monticulo: O(k log k). */
     private static Coleccion<FilaReporte> mayores(Coleccion<FilaReporte> filas, int n, Comparator<FilaReporte> orden) {
         MonticuloBinario<FilaReporte> monticulo = new MonticuloBinario<>(orden);
         for (FilaReporte f : filas) {
@@ -188,7 +154,6 @@ public class AnalisisGastos {
         return resultado;
     }
 
-    /** Cliente que hizo el gasto, o null si la transaccion no es un gasto. */
     private String clienteQueGasta(Transaccion t) {
         if (t.isRevertida()) {
             return null;

@@ -21,10 +21,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Arrays;
 
-/**
- * Pantalla de inicio de sesion. Si las credenciales son correctas abre la
- * ventana principal con los permisos del rol del usuario.
- */
 public class VentanaLogin extends JFrame {
 
     private final SistemaMonedero sistema;
@@ -36,19 +32,32 @@ public class VentanaLogin extends JFrame {
         super("Monedero Virtual - Iniciar sesion");
         this.sistema = sistema;
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
+        getContentPane().setBackground(Estilo.FONDO);
 
-        JPanel cabecera = new JPanel(new BorderLayout());
-        cabecera.setBackground(Formato.PRIMARIO);
-        cabecera.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+        JPanel tarjeta = new JPanel(new BorderLayout(0, 6));
+        tarjeta.setBackground(Estilo.TARJETA);
+        tarjeta.setBorder(BorderFactory.createCompoundBorder(new Estilo.BordeRedondeado(Estilo.BORDE, 16),
+                BorderFactory.createEmptyBorder(22, 28, 18, 28)));
+        add(tarjeta);
+
+        JPanel cabecera = new JPanel(new BorderLayout(0, 4));
+        cabecera.setOpaque(false);
         JLabel titulo = new JLabel("Monedero Virtual", SwingConstants.CENTER);
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 20f));
-        titulo.setForeground(java.awt.Color.WHITE);
+        titulo.setFont(Estilo.fuente(Font.BOLD, 24));
+        titulo.setForeground(Estilo.CABECERA);
+        JLabel subtitulo = new JLabel("Inicie sesion para continuar", SwingConstants.CENTER);
+        subtitulo.setFont(Estilo.fuente(Font.PLAIN, 13));
+        subtitulo.setForeground(Estilo.TEXTO_SUAVE);
         cabecera.add(titulo, BorderLayout.CENTER);
-        add(cabecera, BorderLayout.NORTH);
+        cabecera.add(subtitulo, BorderLayout.SOUTH);
+        tarjeta.add(cabecera, BorderLayout.NORTH);
 
         JPanel formulario = new JPanel(new GridBagLayout());
-        formulario.setBorder(BorderFactory.createEmptyBorder(16, 24, 8, 24));
+        formulario.setOpaque(false);
+        formulario.setBorder(BorderFactory.createEmptyBorder(14, 0, 4, 0));
+        campoUsuario.setFont(Estilo.fuente(Font.PLAIN, 14));
+        campoContrasena.setFont(Estilo.fuente(Font.PLAIN, 14));
         GridBagConstraints g = new GridBagConstraints();
         g.insets = new Insets(6, 6, 6, 6);
         g.fill = GridBagConstraints.HORIZONTAL;
@@ -63,7 +72,7 @@ public class VentanaLogin extends JFrame {
         g.gridx = 1;
         formulario.add(campoContrasena, g);
 
-        JButton ingresar = new JButton("Ingresar");
+        JButton ingresar = Estilo.botonPrimario("Ingresar");
         ingresar.addActionListener(e -> ingresar());
         g.gridx = 0;
         g.gridy = 2;
@@ -72,18 +81,17 @@ public class VentanaLogin extends JFrame {
         mensaje.setForeground(Formato.ERROR);
         g.gridy = 3;
         formulario.add(mensaje, g);
-        add(formulario, BorderLayout.CENTER);
+        tarjeta.add(formulario, BorderLayout.CENTER);
 
         JLabel ayuda = new JLabel("<html><center>Usuarios de demostracion:<br>"
                 + "admin / admin123 (administrador)<br>ana / ana123, bruno / bruno123 (clientes)</center></html>",
                 SwingConstants.CENTER);
-        ayuda.setFont(ayuda.getFont().deriveFont(Font.ITALIC, 11f));
+        ayuda.setFont(Estilo.fuente(Font.ITALIC, 11));
         ayuda.setForeground(Formato.APAGADO);
-        ayuda.setBorder(BorderFactory.createEmptyBorder(0, 10, 14, 10));
-        add(ayuda, BorderLayout.SOUTH);
+        tarjeta.add(ayuda, BorderLayout.SOUTH);
 
-        getRootPane().setDefaultButton(ingresar); // Enter inicia sesion
-        setMinimumSize(new Dimension(380, 300));
+        getRootPane().setDefaultButton(ingresar);
+        setMinimumSize(new Dimension(460, 420));
         pack();
         setLocationRelativeTo(null);
     }
@@ -99,7 +107,7 @@ public class VentanaLogin extends JFrame {
             campoContrasena.setText("");
             campoContrasena.requestFocusInWindow();
         } finally {
-            Arrays.fill(contrasena, '\0'); // no dejar la contrasena en memoria mas de lo necesario
+            Arrays.fill(contrasena, '\0');
         }
     }
 }

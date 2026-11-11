@@ -8,20 +8,10 @@ import monedero.modelo.Monedero;
 import monedero.modelo.Usuario;
 import monedero.servicio.SistemaMonedero;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.border.Border;
-import java.awt.Font;
 
-/**
- * Estado compartido por todas las vistas: el sistema, el cliente con el que
- * se esta trabajando y la lista de vistas a refrescar despues de cada
- * operacion. Ninguna vista llama a otra directamente.
- */
 final class Contexto {
 
     private final SistemaMonedero sistema;
@@ -30,10 +20,6 @@ final class Contexto {
     private JFrame ventana;
     private String clienteActual;
 
-    /**
-     * Un cliente siempre trabaja con su propio cliente; el administrador
-     * empieza con el primero y puede cambiar.
-     */
     Contexto(SistemaMonedero sistema, Usuario usuario) {
         this.sistema = sistema;
         this.usuario = usuario;
@@ -71,15 +57,13 @@ final class Contexto {
         }
     }
 
-    // ------------------------------------------------------------------ cliente actual
-
     Cliente cliente() {
         return clienteActual == null ? null : sistema.buscarCliente(clienteActual);
     }
 
     void seleccionarCliente(String clienteId) {
         if (!esAdmin()) {
-            return; // un cliente no puede ver a otros
+            return;
         }
         if (clienteId != null && !clienteId.equals(clienteActual)) {
             clienteActual = clienteId;
@@ -87,11 +71,6 @@ final class Contexto {
         }
     }
 
-    /**
-     * Clientes ordenados por id (la tabla hash no guarda orden). Se usa un AVL
-     * y no un BST simple: los ids salen de la tabla casi en orden (C001, C002...)
-     * y con claves ordenadas un BST simple quedaria como una lista.
-     */
     Coleccion<Cliente> clientesOrdenados() {
         ArbolAVL<String, Cliente> orden = new ArbolAVL<>();
         for (Cliente c : sistema.getClientes()) {
@@ -112,14 +91,12 @@ final class Contexto {
         return c.getId() + " - " + c.getNombre();
     }
 
-    /** El saldo de un monedero ajeno solo lo ve el administrador. */
     String etiqueta(Monedero m) {
         boolean propio = m.getClienteId().equals(clienteActual);
         return m.getId() + " " + m.getNombre() + " (" + sistema.buscarCliente(m.getClienteId()).getNombre() + ")"
                 + (esAdmin() || propio ? " " + Formato.pesos(m.getSaldo()) : "");
     }
 
-    /** Recarga el combo con los monederos del cliente actual (o todos) conservando la seleccion. */
     void llenarMonederos(JComboBox<String> combo, boolean todos) {
         String antes = combo.getSelectedItem() == null ? null : Formato.idDe(combo.getSelectedItem());
         combo.removeAllItems();
@@ -133,17 +110,6 @@ final class Contexto {
         }
     }
 
-    // ------------------------------------------------------------------ acciones y mensajes
-
-    /**
-     * Ejecuta una accion del usuario: si funciona refresca todo y muestra el
-     * mensaje de exito (si hay); si falla muestra el error de negocio
-     * (saldo insuficiente, monto invalido...) sin cerrar nada.
-     *
-     * La accion y el refresco se manejan por separado: si la accion ya se hizo
-     * y solo falla el refresco, no se le dice al usuario que la operacion fallo.
-     * @return true si la accion se hizo
-     */
     boolean ejecutar(String exito, Runnable accion) {
         try {
             accion.run();
@@ -158,7 +124,6 @@ final class Contexto {
         return true;
     }
 
-    /** Para acciones que no cambian datos (consultas) y para los listeners: muestra el error en vez de perderlo. */
     void conManejo(Runnable accion) {
         try {
             accion.run();
@@ -179,25 +144,5 @@ final class Contexto {
 
     void informar(String titulo, String mensaje) {
         JOptionPane.showMessageDialog(ventana, mensaje, titulo, JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // ------------------------------------------------------------------ estilo
-
-    static Border tarjeta(String titulo) {
-        return BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Formato.BORDE), titulo),
-                BorderFactory.createEmptyBorder(6, 8, 8, 8));
-    }
-
-    static JLabel titulo(String texto) {
-        JLabel l = new JLabel(texto);
-        l.setFont(l.getFont().deriveFont(Font.BOLD, 15f));
-        l.setForeground(Formato.PRIMARIO);
-        return l;
-    }
-
-    static <T extends JComponent> T conBorde(T componente, String titulo) {
-        componente.setBorder(tarjeta(titulo));
-        return componente;
     }
 }

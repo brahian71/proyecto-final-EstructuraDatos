@@ -7,11 +7,6 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de JTable de solo lectura. Las filas se arman con nuestras propias
- * estructuras (Coleccion) y se copian a un arreglo para que JTable pueda
- * pedir cualquier celda en O(1).
- */
 final class ModeloTabla extends AbstractTableModel {
 
     private final String[] columnas;
@@ -21,7 +16,6 @@ final class ModeloTabla extends AbstractTableModel {
         this.columnas = columnas;
     }
 
-    /** Para armar las filas antes de llamar a setFilas. */
     static Coleccion<Object[]> nuevasFilas() {
         return new ListaEnlazada<>();
     }
@@ -70,6 +64,7 @@ final class ModeloTabla extends AbstractTableModel {
         tabla.setRowHeight(24);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.getTableHeader().setReorderingAllowed(false);
+        Estilo.estilizarTabla(tabla);
         return tabla;
     }
 }

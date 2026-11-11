@@ -24,12 +24,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 
-/**
- * Ventana principal. Arriba: cliente con el que se trabaja, fecha del reloj
- * simulado, avanzar dias (ejecuta las programadas) y verificar integridad.
- * Al centro, una pestania por funcionalidad. Toda la logica esta en
- * SistemaMonedero; esta clase y los paneles solo leen y llaman metodos.
- */
 public class VentanaPrincipal extends JFrame implements Refrescable {
 
     private final Contexto contexto;
@@ -58,27 +52,20 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         agregarPestania(usuario.esAdministrador() ? "Clientes" : "Mis monederos", new PanelClientes(contexto));
         add(pestanias, BorderLayout.CENTER);
 
+        pestanias.setFont(Estilo.fuente(java.awt.Font.BOLD, 13));
+        pestanias.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
+        getContentPane().setBackground(Estilo.FONDO);
         contexto.registrar(this);
         contexto.refrescarTodo();
+        Estilo.ajustarFondos(getContentPane(), false);
         pack();
         setLocationRelativeTo(null);
     }
 
-    /** Usa el aspecto Nimbus (viene con Java); si no esta, se queda con el por defecto. */
     public static void aplicarAspecto() {
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    return;
-                }
-            }
-        } catch (Exception e) {
-            // aspecto por defecto
-        }
+        Estilo.aplicarAspecto();
     }
 
-    /** Para las capturas del informe. */
     public JTabbedPane getPestanias() {
         return pestanias;
     }
@@ -90,20 +77,20 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
 
     private JPanel crearBarra() {
         JPanel barra = new JPanel(new BorderLayout());
-        barra.setBackground(Formato.PRIMARIO);
-        barra.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        barra.setBackground(Estilo.CABECERA);
+        barra.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
 
         JLabel titulo = new JLabel("Monedero Virtual");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 18f));
+        titulo.setFont(Estilo.fuente(Font.BOLD, 18));
         titulo.setForeground(java.awt.Color.WHITE);
         barra.add(titulo, BorderLayout.WEST);
 
-        JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         derecha.setOpaque(false);
         boolean admin = contexto.esAdmin();
         derecha.add(blanco(new JLabel(admin ? "Cliente:" : contexto.cliente().getNombre())));
-        comboCliente.setVisible(admin); // un cliente no puede cambiar de cliente
-        comboCliente.setPreferredSize(new Dimension(220, 28));
+        comboCliente.setVisible(admin);
+        comboCliente.setPreferredSize(new Dimension(190, 28));
         comboCliente.addActionListener(e -> {
             if (!llenandoCombo && comboCliente.getSelectedItem() != null) {
                 contexto.conManejo(() -> contexto.seleccionarCliente(Formato.idDe(comboCliente.getSelectedItem())));
@@ -117,7 +104,7 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         dias.setPreferredSize(new Dimension(60, 28));
         dias.setVisible(admin);
         derecha.add(dias);
-        JButton avanzar = new JButton("Avanzar dias");
+        JButton avanzar = Estilo.botonCabecera("Avanzar dias");
         avanzar.setToolTipText("Mueve el reloj simulado y ejecuta las transacciones programadas que venzan");
         avanzar.addActionListener(e -> {
             int[] procesadas = new int[1];
@@ -127,18 +114,18 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
                         + (procesadas[0] > 0 ? "\n(las que no se pudieron hacer aparecen en las notificaciones)" : ""));
             }
         });
-        avanzar.setVisible(admin); // el reloj y la integridad son del sistema, no de un cliente
+        avanzar.setVisible(admin);
         derecha.add(avanzar);
 
-        JButton integridad = new JButton("Verificar integridad");
+        JButton integridad = Estilo.botonCabecera("Verificar integridad");
         integridad.addActionListener(e -> contexto.conManejo(this::mostrarIntegridad));
         integridad.setVisible(admin);
         derecha.add(integridad);
 
         JLabel sesion = blanco(new JLabel(contexto.usuario().getNombreUsuario()
-                + (admin ? " (administrador)" : "")));
+                ));
         derecha.add(sesion);
-        JButton salir = new JButton("Cerrar sesion");
+        JButton salir = Estilo.botonCabecera("Cerrar sesion");
         salir.addActionListener(e -> {
             dispose();
             new VentanaLogin(contexto.sistema()).setVisible(true);
@@ -177,6 +164,6 @@ public class VentanaPrincipal extends JFrame implements Refrescable {
         llenandoCombo = false;
         etiquetaFecha.setText("Hoy: " + Formato.fecha(contexto.sistema().getReloj().ahora()));
         int avisos = actual == null ? 0 : contexto.sistema().getNotificador().noLeidas(actual.getId());
-        etiquetaAvisos.setText(avisos > 0 ? "✉ " + avisos + " sin leer" : "");
+        etiquetaAvisos.setText(avisos > 0 ? avisos + " sin leer" : "");
     }
 }

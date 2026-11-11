@@ -6,23 +6,21 @@ import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/** Formatos y colores compartidos por toda la interfaz. */
 final class Formato {
 
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    static final Color PRIMARIO = new Color(0x1F4E79);
-    static final Color FONDO_TARJETA = new Color(0xF4F7FB);
-    static final Color BORDE = new Color(0xC9D3DF);
-    static final Color EXITO = new Color(0x2E7D32);
-    static final Color ERROR = new Color(0xC62828);
-    static final Color APAGADO = new Color(0x8A8F98);
+    static final Color PRIMARIO = Estilo.PRIMARIO;
+    static final Color FONDO_TARJETA = new Color(0xEFF6FF);
+    static final Color BORDE = Estilo.BORDE;
+    static final Color EXITO = Estilo.EXITO;
+    static final Color ERROR = Estilo.ERROR;
+    static final Color APAGADO = Estilo.TEXTO_SUAVE;
 
     private Formato() {
     }
 
-    /** 12345 -> "$12.345" (separador de miles colombiano). */
     static String pesos(long valor) {
         return monedero.modelo.Moneda.pesos(valor);
     }
@@ -35,11 +33,6 @@ final class Formato {
         return fecha == null ? "" : fecha.format(FECHA_HORA);
     }
 
-    /**
-     * Lee un monto entero en pesos, con o sin puntos de miles: "12500",
-     * "12.500", "$1.250.000". Rechaza decimales ("12.5" o "12,50"): con
-     * puntos de miles, "12.5" se leeria como 125 sin que el usuario lo note.
-     */
     static long leerMonto(String texto) {
         String limpio = texto == null ? "" : texto.replace("$", "").replace(" ", "").trim();
         if (limpio.isEmpty()) {
@@ -65,7 +58,6 @@ final class Formato {
         };
     }
 
-    /** El id es lo que va antes del primer espacio en las etiquetas de los combos ("M001 Principal ..."). */
     static String idDe(Object etiqueta) {
         if (etiqueta == null) {
             throw new IllegalArgumentException("Seleccione una opcion");

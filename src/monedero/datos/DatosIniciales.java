@@ -10,16 +10,6 @@ import monedero.modelo.TipoMonedero;
 import monedero.modelo.TipoTransaccion;
 import monedero.servicio.SistemaMonedero;
 
-/**
- * Datos de ejemplo para arrancar el sistema con informacion (no hay
- * persistencia). Pasan por el servicio, asi que saldos, puntos e historial
- * quedan consistentes y la verificacion de integridad da OK.
- *
- * Montos en pesos colombianos reales. Con la escala de puntos en pesos
- * (unidad = $100, puntos por cada $10.000) quedan:
- *   Diego Oro (1.200 pts), Ana Plata (559, con 3 de bono por rango), Bruno Bronce (322),
- *   Carla Bronce (152).
- */
 public final class DatosIniciales {
 
     public static final String USUARIO_ADMIN = "admin";
@@ -29,7 +19,6 @@ public final class DatosIniciales {
     }
 
     public static void cargar(SistemaMonedero sistema) {
-        // usuarios de demostracion (ver README): admin / admin123 y cada cliente con su nombre + 123
         sistema.getUsuarios().registrar(USUARIO_ADMIN, CONTRASENA_ADMIN, Rol.ADMINISTRADOR, null);
         Cliente ana = sistema.registrarClienteConUsuario("Ana Gomez", "ana", "ana123");
         Cliente bruno = sistema.registrarClienteConUsuario("Bruno Diaz", "bruno", "bruno123");
@@ -62,7 +51,6 @@ public final class DatosIniciales {
         sistema.retirar(carlaPrincipal, 75_000, Categoria.SALUD, "Farmacia");
         sistema.transferir(brunoGastos.getId(), anaPrincipal, 85_000, Categoria.ALIMENTACION, "Almuerzo compartido");
 
-        // programadas: se ejecutan al avanzar el reloj desde el menu
         var programador = sistema.getProgramador();
         var hoy = sistema.getReloj().ahora();
         programador.programar(TipoTransaccion.TRANSFERENCIA, anaPrincipal, anaAhorros.getId(), 300_000,
@@ -73,7 +61,6 @@ public final class DatosIniciales {
                 Categoria.EDUCACION, "Clases de guitarra", Frecuencia.SEMANAL, hoy.plusDays(2), 4);
     }
 
-    /** El primer monedero de cada cliente es el principal (lo crea registrarCliente). */
     private static String principal(Cliente cliente) {
         return cliente.getMonederos().iterator().next().getId();
     }

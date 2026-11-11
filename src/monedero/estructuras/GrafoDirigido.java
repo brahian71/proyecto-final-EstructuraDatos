@@ -2,25 +2,8 @@ package monedero.estructuras;
 
 import java.util.Objects;
 
-/**
- * Grafo dirigido y ponderado con LISTA DE ADYACENCIA: cada vertice guarda
- * sus aristas salientes en una tabla hash (destino -> arista), asi agregar
- * peso a una arista que ya existe es O(1) y no se duplican aristas.
- *
- * Cada arista acumula dos cosas: peso (ej. dinero total enviado) y veces
- * (cuantas transacciones la formaron).
- *
- * Algoritmos:
- *   caminoMasCorto(a, b)  BFS con ColaEnlazada; camino con menos aristas  O(V + E)
- *   ciclos()              DFS recursivo; cada arista de retroceso
- *                         (a un vertice que sigue en la pila de la
- *                         recursion) cierra un ciclo                     O(V + E)
- *   alcanzables(a)        DFS recursivo                                  O(V + E)
- * Tamanio: O(V + E) en memoria (una matriz de adyacencia seria O(V^2)).
- */
 public class GrafoDirigido<V> {
 
-    /** Arista hacia destino con su peso acumulado. */
     public static class Arista<V> {
         private final V origen;
         private final V destino;
@@ -67,7 +50,6 @@ public class GrafoDirigido<V> {
     }
 
     private final Mapa<V, Vertice<V>> vertices = new TablaHash<>();
-    /** Para recorrer los vertices en el orden en que se agregaron (resultados reproducibles). */
     private final Coleccion<V> ordenVertices = new ListaEnlazada<>();
     private int cantidadAristas;
 
@@ -79,7 +61,6 @@ public class GrafoDirigido<V> {
         }
     }
 
-    /** Suma peso a la arista origen -> destino (la crea si no existe). Crea los vertices si faltan. */
     public void agregarArista(V origen, V destino, long peso) {
         agregarVertice(origen);
         agregarVertice(destino);
@@ -101,7 +82,6 @@ public class GrafoDirigido<V> {
         return vertices.contiene(valor);
     }
 
-    /** @return la arista, o null si no existe. */
     public Arista<V> arista(V origen, V destino) {
         Vertice<V> o = vertices.obtener(origen);
         return o == null ? null : o.salientes.obtener(destino);
@@ -115,7 +95,6 @@ public class GrafoDirigido<V> {
         return ordenVertices;
     }
 
-    /** Todas las aristas del grafo. */
     public Coleccion<Arista<V>> aristas() {
         Coleccion<Arista<V>> todas = new ListaEnlazada<>();
         for (V v : ordenVertices) {
@@ -154,13 +133,6 @@ public class GrafoDirigido<V> {
         return cantidadAristas;
     }
 
-    // ------------------------------------------------------------------ BFS
-
-    /**
-     * Camino con menos aristas de origen a destino (BFS). Se guarda de que
-     * vertice se llego a cada uno y al final se reconstruye hacia atras.
-     * @return los vertices del camino (incluye ambos extremos), o vacio si no hay.
-     */
     public Coleccion<V> caminoMasCorto(V origen, V destino) {
         Coleccion<V> camino = new ListaEnlazada<>();
         if (!vertices.contiene(origen) || !vertices.contiene(destino)) {
@@ -187,7 +159,6 @@ public class GrafoDirigido<V> {
         if (!visitado.contiene(destino)) {
             return camino;
         }
-        // reconstruir de destino a origen con una pila para dejarlo en orden
         Pila<V> alReves = new PilaEnlazada<>();
         for (V v = destino; v != null; v = llegoDesde.obtener(v)) {
             alReves.apilar(v);
@@ -198,9 +169,6 @@ public class GrafoDirigido<V> {
         return camino;
     }
 
-    // ------------------------------------------------------------------ DFS
-
-    /** Vertices a los que se puede llegar desde origen (sin incluirlo). */
     public Coleccion<V> alcanzables(V origen) {
         Coleccion<V> resultado = new ListaEnlazada<>();
         if (vertices.contiene(origen)) {
@@ -221,15 +189,7 @@ public class GrafoDirigido<V> {
         }
     }
 
-    /**
-     * Ciclos encontrados con DFS. Cada vertice tiene tres estados: sin
-     * visitar, EN_PILA (la recursion esta dentro de el) y TERMINADO. Si desde
-     * un vertice se llega a otro que esta EN_PILA, esa arista cierra un ciclo
-     * y el ciclo es el tramo de la pila desde ese vertice hasta el actual.
-     * Encuentra al menos un ciclo si existe alguno (no enumera todos los
-     * posibles, que pueden ser exponenciales).
-     * @return cada ciclo como lista de vertices (el primero se repite al final)
-     */
+    // DFS con tres estados (sin visitar, EN_PILA, TERMINADO): una arista hacia un vertice EN_PILA cierra un ciclo
     public Coleccion<Coleccion<V>> ciclos() {
         Coleccion<Coleccion<V>> ciclos = new ListaEnlazada<>();
         Mapa<V, Integer> estado = new TablaHash<>();
@@ -256,7 +216,7 @@ public class GrafoDirigido<V> {
                 ciclos.agregar(tramoDesde(pila, a.destino));
             }
         }
-        pila.eliminar(actual); // es el ultimo de la pila; eliminar lo busca desde el inicio: O(profundidad)
+        pila.eliminar(actual);
         estado.poner(actual, TERMINADO);
     }
 

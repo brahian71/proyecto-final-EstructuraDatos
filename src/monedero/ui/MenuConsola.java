@@ -21,11 +21,6 @@ import monedero.servicio.VerificadorIntegridad;
 
 import java.util.Scanner;
 
-/**
- * Interfaz de consola para la fase de desarrollo. Solo llama a
- * SistemaMonedero; la interfaz grafica (fase 6) reemplaza esta clase sin
- * tocar los servicios.
- */
 public class MenuConsola {
 
     private final SistemaMonedero sistema;
@@ -44,7 +39,6 @@ public class MenuConsola {
             try {
                 ejecutar(opcion);
             } catch (RuntimeException e) {
-                // reglas de negocio (saldo insuficiente, id inexistente, monto invalido)
                 System.out.println("  ERROR: " + e.getMessage());
             }
         } while (opcion != 0);
@@ -288,8 +282,6 @@ public class MenuConsola {
         System.out.println("  OK " + t);
         System.out.println("  Puntos del cliente: " + sistema.buscarCliente(sistema.clienteQueGanaPuntos(t)));
     }
-
-    // ------------------------------------------------------------------ lectura
 
     private String leerTexto(String mensaje) {
         System.out.print(mensaje);

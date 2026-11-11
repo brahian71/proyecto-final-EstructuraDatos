@@ -2,11 +2,6 @@ package monedero.modelo;
 
 import java.util.Objects;
 
-/**
- * Cuenta para iniciar sesion. La contrasena NO se guarda: solo su hash
- * SHA-256 junto con una sal aleatoria propia de cada usuario (ver
- * ServicioUsuarios). Un usuario CLIENTE queda ligado a un cliente.
- */
 public class Usuario {
 
     private final String nombreUsuario;
@@ -38,7 +33,6 @@ public class Usuario {
         return rol;
     }
 
-    /** null si es administrador. */
     public String getClienteId() {
         return clienteId;
     }

@@ -3,7 +3,6 @@ package monedero.modelo;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/** Beneficio canjeado que sigue vigente hasta la fecha vence (exclusiva). */
 public class BeneficioActivo {
 
     private final Beneficio beneficio;

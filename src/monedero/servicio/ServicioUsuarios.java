@@ -14,16 +14,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 
-/**
- * Usuarios e inicio de sesion. Los usuarios se guardan en una TablaHash por
- * nombre de usuario (en minusculas), asi iniciar sesion es O(1) promedio.
- *
- * Contrasenas: nunca se guardan. Se guarda hash = SHA-256(sal + contrasena),
- * con una sal aleatoria de 16 bytes distinta para cada usuario. Asi dos
- * usuarios con la misma contrasena tienen hashes distintos, y quien vea los
- * datos no puede leer las contrasenas. Al iniciar sesion se recalcula el hash
- * con la sal guardada y se compara en tiempo constante (MessageDigest.isEqual).
- */
 public class ServicioUsuarios {
 
     public static final int MINIMO_USUARIO = 3;
@@ -32,7 +22,6 @@ public class ServicioUsuarios {
     private final Mapa<String, Usuario> usuarios = new TablaHash<>();
     private final SecureRandom aleatorio = new SecureRandom();
 
-    /** Revisa los datos sin crear nada (para validar antes de crear el cliente). */
     public void validarNuevo(String nombreUsuario, String contrasena) {
         String clave = normalizar(nombreUsuario);
         if (clave.length() < MINIMO_USUARIO || !clave.matches("[a-z0-9._]+")) {
@@ -57,11 +46,10 @@ public class ServicioUsuarios {
         return usuario;
     }
 
-    /** @throws AutenticacionException con el mismo mensaje si falla el usuario o la contrasena */
     public Usuario iniciarSesion(String nombreUsuario, String contrasena) {
         Usuario usuario = usuarios.obtener(normalizar(nombreUsuario));
         if (usuario == null || contrasena == null) {
-            hash("", String.valueOf(contrasena)); // mismo trabajo que con un usuario real: no se nota si existe
+            hash("", String.valueOf(contrasena));
             throw new AutenticacionException();
         }
         byte[] esperado = usuario.getHashContrasena().getBytes(StandardCharsets.UTF_8);
@@ -80,7 +68,6 @@ public class ServicioUsuarios {
         return usuarios.tamanio();
     }
 
-    /** Usuario ligado a un cliente, o null. O(n): solo lo usa la interfaz para mostrarlo. */
     public Usuario usuarioDeCliente(String clienteId) {
         for (Usuario u : usuarios.valores()) {
             if (clienteId.equals(u.getClienteId())) {
@@ -100,7 +87,7 @@ public class ServicioUsuarios {
             byte[] resumen = sha.digest((sal + contrasena).getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(resumen);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 no disponible", e); // todo Java lo trae
+            throw new IllegalStateException("SHA-256 no disponible", e);
         }
     }
 }

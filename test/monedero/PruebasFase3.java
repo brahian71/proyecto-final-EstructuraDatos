@@ -21,10 +21,6 @@ import monedero.servicio.VerificadorIntegridad;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-/**
- * Pruebas de la fase 3: tabla hash, BST, AVL, puntos acumulados/disponibles,
- * canje, comisiones y ranking. Sin JUnit, cada prueba imprime OK o FALLO.
- */
 public class PruebasFase3 {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 1, 8, 0);
@@ -72,8 +68,6 @@ public class PruebasFase3 {
         }
     }
 
-    // ------------------------------------------------------------------ tabla hash
-
     private static void hashBasico() {
         TablaHash<String, Integer> t = new TablaHash<>();
         verificar("hash: vacia", t.estaVacio() && t.obtener("x") == null && !t.contiene("x"));
@@ -110,7 +104,6 @@ public class PruebasFase3 {
         verificar("hash: cubetas cortas (" + t.cubetaMasLarga() + ")", t.cubetaMasLarga() <= 8);
     }
 
-    /** Claves distintas con el mismo hashCode caen en la misma cubeta. */
     private static void hashColisiones() {
         record Mismo(int id) {
             @Override
@@ -126,8 +119,6 @@ public class PruebasFase3 {
         verificar("hash: colisiones se resuelven", "v13".equals(t.obtener(new Mismo(13)))
                 && t.obtener(new Mismo(7)) == null && t.tamanio() == 19);
     }
-
-    // ------------------------------------------------------------------ BST y AVL
 
     private static void bstInsertarYBuscar() {
         ArbolBST<Integer, String> a = new ArbolBST<>();
@@ -172,7 +163,6 @@ public class PruebasFase3 {
         lanza("bst vacio: minimo lanza", NoSuchElementException.class, a::minimo);
     }
 
-    /** El argumento del informe: con claves en orden el BST simple queda como lista. */
     private static void bstSeDegeneraConClavesOrdenadas() {
         ArbolBST<Integer, Integer> bst = new ArbolBST<>();
         ArbolAVL<Integer, Integer> avl = new ArbolAVL<>();
@@ -209,19 +199,15 @@ public class PruebasFase3 {
         verificar("avl: altura baja (" + a.altura() + ")", a.altura() <= 8);
     }
 
-    // ------------------------------------------------------------------ comisiones
-
     private static void comisionTransferencia() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
         Cliente bruno = s.registrarCliente("Bruno");
         String a = principal(ana);
-        s.depositar(a, 40_000, "x"); // 400 pts: Bronce, sin descuento
+        s.depositar(a, 40_000, "x");
         Transaccion chica = s.transferir(a, principal(bruno), 10_000, Categoria.OTROS, "x");
         verificar("comision: minimo $500", chica.getComision() == 500);
         Transaccion grande = s.transferir(a, principal(bruno), 20_000, Categoria.OTROS, "x");
-        // antes de esta tiene 400 + 300 = 700 pts (Plata): 1% de 20.000 = 200 -> minimo 500 -> -10% = 450.
-        // Los 600 pts de esta transferencia se suman despues de cobrarla.
         verificar("comision: minimo con descuento Plata = 450", grande.getComision() == 450);
         verificar("comision: se descuenta del origen", s.consultarSaldo(a) == 40_000 - 10_500 - 20_450);
         verificar("comision: el destino recibe el monto completo", s.consultarSaldo(principal(bruno)) == 30_000);
@@ -232,7 +218,7 @@ public class PruebasFase3 {
         Cliente ana = s.registrarCliente("Ana");
         Cliente bruno = s.registrarCliente("Bruno");
         String a = principal(ana);
-        s.depositar(a, 600_000, "x"); // 6000 pts: Platino
+        s.depositar(a, 600_000, "x");
         long comision = s.cotizarComision(TipoTransaccion.TRANSFERENCIA, 200_000, a);
         verificar("comision: Platino 30% de 2.000 = 1.400", comision == 1_400);
         verificar("comision: interno gratis", s.cotizarComision(TipoTransaccion.MOVIMIENTO_INTERNO, 200_000, a) == 0);
@@ -260,12 +246,10 @@ public class PruebasFase3 {
         verificar("comision: revertir devuelve monto y comision", s.consultarSaldo(m) == 10_000);
     }
 
-    // ------------------------------------------------------------------ canje
-
     private static void canjeGastaDisponiblesNoRango() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
-        s.depositar(principal(ana), 60_000, "x"); // 600 pts: Plata
+        s.depositar(principal(ana), 60_000, "x");
         s.canjear(ana.getId(), Beneficio.RETIROS_SIN_CARGO);
         verificar("canje: descuenta disponibles", ana.getPuntosDisponibles() == 100 && ana.getPuntosCanjeados() == 500);
         verificar("canje: acumulados y rango no cambian", ana.getPuntos() == 600 && ana.getRango() == Rango.PLATA);
@@ -274,7 +258,7 @@ public class PruebasFase3 {
     private static void canjeSinPuntos() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
-        s.depositar(principal(ana), 9_900, "x"); // 99 pts
+        s.depositar(principal(ana), 9_900, "x");
         lanza("canje: sin puntos suficientes lanza", OperacionInvalidaException.class,
                 () -> s.canjear(ana.getId(), Beneficio.DESCUENTO_TRANSFERENCIAS));
         verificar("canje: no cambio nada", ana.getPuntosDisponibles() == 99 && ana.getPuntosCanjeados() == 0);
@@ -285,7 +269,7 @@ public class PruebasFase3 {
         Cliente ana = s.registrarCliente("Ana");
         Cliente bruno = s.registrarCliente("Bruno");
         String a = principal(ana);
-        s.depositar(a, 300_000, "x"); // 3000 pts: Oro (20%)
+        s.depositar(a, 300_000, "x");
         long antes = s.cotizarComision(TipoTransaccion.TRANSFERENCIA, 100_000, a);
         s.canjear(ana.getId(), Beneficio.DESCUENTO_TRANSFERENCIAS);
         long despues = s.cotizarComision(TipoTransaccion.TRANSFERENCIA, 100_000, a);
@@ -310,7 +294,7 @@ public class PruebasFase3 {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
         String m = principal(ana);
-        s.depositar(m, 100_000, "x"); // 1000 pts
+        s.depositar(m, 100_000, "x");
         s.canjear(ana.getId(), Beneficio.BONO_SALDO);
         verificar("canje 1000: bono de 50 unidades", s.consultarSaldo(m) == 100_000 + 50);
         verificar("canje 1000: el bono no da puntos", ana.getPuntos() == 1000 && ana.getPuntosDisponibles() == 0);
@@ -321,7 +305,7 @@ public class PruebasFase3 {
     private static void noRevertirSiPuntosCanjeados() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
-        s.depositar(principal(ana), 10_000, "x"); // 100 pts
+        s.depositar(principal(ana), 10_000, "x");
         s.canjear(ana.getId(), Beneficio.DESCUENTO_TRANSFERENCIAS);
         lanza("revertir: puntos ya canjeados lanza", OperacionInvalidaException.class,
                 () -> s.revertirUltima(ana.getId()));
@@ -345,22 +329,20 @@ public class PruebasFase3 {
         verificar("historial puntos: suma = disponibles", suma == ana.getPuntosDisponibles() && suma == 400);
     }
 
-    // ------------------------------------------------------------------ bono de puntos por rango
-
     private static void bonoPorRango() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
         Cliente bruno = s.registrarCliente("Bruno");
         String a = principal(ana);
-        s.depositar(a, 20_000, "x"); // 200 pts: Bronce
+        s.depositar(a, 20_000, "x");
         Transaccion bronce = s.retirar(a, 1_000, Categoria.OTROS, "x");
         verificar("bono: Bronce no tiene", bronce.getPuntos() == 20 && bronce.getBonoPuntos() == 0);
-        s.depositar(a, 40_000, "x"); // 620 pts: Plata
+        s.depositar(a, 40_000, "x");
         long cotizados = s.cotizarPuntos(TipoTransaccion.TRANSFERENCIA, 1_000, a);
         Transaccion plata = s.transferir(a, principal(bruno), 1_000, Categoria.OTROS, "x");
         verificar("bono: Plata +10 % (30 base + 3)", plata.getPuntos() == 33 && plata.getBonoPuntos() == 3);
         verificar("bono: la cotizacion coincide", cotizados == 33);
-        s.depositar(a, 50_000, "x"); // 1153 pts: Oro
+        s.depositar(a, 50_000, "x");
         Transaccion oro = s.retirar(a, 1_000, Categoria.OTROS, "x");
         verificar("bono: Oro +20 % (20 base + 4)", oro.getPuntos() == 24 && oro.getBonoPuntos() == 4);
         verificar("bono: integridad OK", new VerificadorIntegridad(s).verificar().esValido());
@@ -369,7 +351,7 @@ public class PruebasFase3 {
     private static void bonoNoEnDepositos() {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
-        s.depositar(principal(ana), 600_000, "x"); // Platino
+        s.depositar(principal(ana), 600_000, "x");
         Transaccion t = s.depositar(principal(ana), 1_000, "x");
         verificar("bono: los depositos no tienen", ana.getRango() == Rango.PLATINO && t.getBonoPuntos() == 0);
     }
@@ -378,14 +360,12 @@ public class PruebasFase3 {
         SistemaMonedero s = nuevo();
         Cliente ana = s.registrarCliente("Ana");
         Cliente bruno = s.registrarCliente("Bruno");
-        s.depositar(principal(ana), 60_000, "x"); // 600 pts: Plata
-        s.transferir(principal(ana), principal(bruno), 10_000, Categoria.OTROS, "x"); // 300 + 30
+        s.depositar(principal(ana), 60_000, "x");
+        s.transferir(principal(ana), principal(bruno), 10_000, Categoria.OTROS, "x");
         verificar("bono: suma base + bono", ana.getPuntos() == 930);
         s.revertirUltima(ana.getId());
         verificar("bono: revertir quita tambien el bono", ana.getPuntos() == 600);
     }
-
-    // ------------------------------------------------------------------ arbol de clientes
 
     private static void rankingYRangos() {
         SistemaMonedero s = conDatosDeEjemplo();
@@ -424,13 +404,10 @@ public class PruebasFase3 {
         }
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private static SistemaMonedero nuevo() {
         return new SistemaMonedero(new Reloj(INICIO), new ComisionEstandar(), CalculadoraPuntos.UNIDAD_UN_PESO);
     }
 
-    /** Como corre el programa: pesos colombianos y comisiones reales, con los datos de ejemplo. */
     private static SistemaMonedero conDatosDeEjemplo() {
         SistemaMonedero s = new SistemaMonedero(new Reloj(INICIO), new ComisionEstandar(), CalculadoraPuntos.PESOS_COLOMBIANOS);
         DatosIniciales.cargar(s);

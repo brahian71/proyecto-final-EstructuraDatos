@@ -20,11 +20,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 
-/**
- * Deposito, retiro y transferencia. Antes de confirmar se muestra la
- * comision y los puntos que se ganarian (cotizacion con el rango y los
- * beneficios de hoy). Abajo, revertir la ultima transaccion (pila).
- */
 final class PanelOperaciones extends JPanel implements Refrescable {
 
     private final Contexto contexto;
@@ -48,7 +43,7 @@ final class PanelOperaciones extends JPanel implements Refrescable {
     private final JLabel transferenciaCotizacion = new JLabel(" ");
 
     private final JLabel proximaReversible = new JLabel(" ");
-    private final JButton botonRevertir = new JButton("Revertir ultima transaccion");
+    private final JButton botonRevertir = Estilo.botonSecundario("Revertir ultima transaccion");
 
     PanelOperaciones(Contexto contexto) {
         super(new BorderLayout(10, 10));
@@ -69,7 +64,7 @@ final class PanelOperaciones extends JPanel implements Refrescable {
         add(formularios, BorderLayout.CENTER);
 
         JPanel reversion = new JPanel(new BorderLayout(10, 0));
-        reversion.setBorder(Contexto.tarjeta("Revertir (pila de transacciones del cliente: se deshace la mas reciente)"));
+        Estilo.comoTarjeta(reversion, "Revertir (pila de transacciones del cliente: se deshace la mas reciente)");
         reversion.add(proximaReversible, BorderLayout.CENTER);
         botonRevertir.addActionListener(e -> revertir());
         reversion.add(botonRevertir, BorderLayout.EAST);
@@ -86,7 +81,7 @@ final class PanelOperaciones extends JPanel implements Refrescable {
     private JPanel formulario(String titulo, String[] etiquetas, java.awt.Component[] campos, JLabel cotizacion,
                               String textoBoton, Runnable accion) {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(Contexto.tarjeta(titulo));
+        Estilo.comoTarjeta(panel, titulo);
         GridBagConstraints g = new GridBagConstraints();
         g.insets = new Insets(4, 4, 4, 4);
         g.fill = GridBagConstraints.HORIZONTAL;
@@ -105,19 +100,16 @@ final class PanelOperaciones extends JPanel implements Refrescable {
         cotizacion.setForeground(Formato.PRIMARIO);
         panel.add(cotizacion, g);
         g.gridy++;
-        JButton boton = new JButton(textoBoton);
+        JButton boton = Estilo.botonPrimario(textoBoton);
         boton.addActionListener(e -> accion.run());
         panel.add(boton, g);
         g.gridy++;
         g.weighty = 1;
-        panel.add(new JLabel(), g); // empuja el contenido hacia arriba
+        panel.add(new JLabel(), g);
         return panel;
     }
 
-    // ------------------------------------------------------------------ acciones
-
     private void depositar() {
-        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
         Transaccion[] hecha = new Transaccion[1];
         if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().depositar(Formato.idDe(depositoDestino.getSelectedItem()),
                     Formato.leerMonto(depositoMonto.getText()), depositoDescripcion.getText()))) {
@@ -127,7 +119,6 @@ final class PanelOperaciones extends JPanel implements Refrescable {
     }
 
     private void retirar() {
-        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
         Transaccion[] hecha = new Transaccion[1];
         if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().retirar(Formato.idDe(retiroOrigen.getSelectedItem()),
                     Formato.leerMonto(retiroMonto.getText()), (Categoria) retiroCategoria.getSelectedItem(),
@@ -138,7 +129,6 @@ final class PanelOperaciones extends JPanel implements Refrescable {
     }
 
     private void transferir() {
-        // el mensaje de confirmacion sale despues de refrescar, con los saldos ya actualizados
         Transaccion[] hecha = new Transaccion[1];
         if (contexto.ejecutar(null, () -> hecha[0] = contexto.sistema().transferir(Formato.idDe(transferenciaOrigen.getSelectedItem()),
                     Formato.idDe(transferenciaDestino.getSelectedItem()), Formato.leerMonto(transferenciaMonto.getText()),
@@ -166,9 +156,6 @@ final class PanelOperaciones extends JPanel implements Refrescable {
                 + "\nPuntos ganados: " + t.getPuntos());
     }
 
-    // ------------------------------------------------------------------ cotizacion
-
-    /** Se llama al escribir o cambiar un combo: nunca debe lanzar excepciones. */
     private void cotizar() {
         try {
             depositoCotizacion.setText(textoCotizacion(TipoTransaccion.DEPOSITO, depositoMonto, null));
@@ -211,7 +198,6 @@ final class PanelOperaciones extends JPanel implements Refrescable {
         contexto.llenarMonederos(transferenciaOrigen, false);
         contexto.llenarMonederos(transferenciaDestino, true);
         if (esMovimientoInterno() && transferenciaOrigen.getSelectedItem().equals(transferenciaDestino.getSelectedItem())) {
-            // por defecto, el primer monedero de otro cliente
             for (int i = 0; i < transferenciaDestino.getItemCount(); i++) {
                 Monedero m = contexto.sistema().buscarMonedero(Formato.idDe(transferenciaDestino.getItemAt(i)));
                 if (c != null && !m.getClienteId().equals(c.getId())) {

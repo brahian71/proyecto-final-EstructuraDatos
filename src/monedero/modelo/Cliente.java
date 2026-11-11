@@ -7,23 +7,6 @@ import monedero.estructuras.PilaEnlazada;
 
 import java.time.LocalDateTime;
 
-/**
- * Cliente del sistema. Tiene uno o varios monederos y dos cuentas de puntos:
- *   puntos (acumulados)  todo lo ganado menos lo revertido. Define el RANGO.
- *   disponibles          acumulados menos lo canjeado. Es lo que se gasta.
- * Asi canjear no hace bajar de rango (no se castiga usar los puntos), pero
- * revertir una transaccion si, porque esos puntos nunca debieron existir.
- *
- * historialPuntos (lista enlazada, en orden de fecha) registra cada
- * movimiento; la suma del historial debe dar los disponibles.
- *
- * Los puntos solo deben cambiar por medio de RegistroPuntos, que mantiene el
- * arbol AVL de clientes ordenado por puntos.
- *
- * reversibles es una PILA con las transacciones que inicio el cliente: solo
- * se puede deshacer la mas reciente (LIFO), igual que Ctrl+Z. Asi nunca se
- * revierte algo de lo que dependen operaciones suyas posteriores.
- */
 public class Cliente {
 
     private final String id;
@@ -60,12 +43,11 @@ public class Cliente {
         if (cantidad == 0) {
             return;
         }
-        puntos = Math.addExact(puntos, cantidad); // lanza excepcion en vez de desbordar
+        puntos = Math.addExact(puntos, cantidad);
         historialPuntos.agregar(new MovimientoPuntos(MovimientoPuntos.Tipo.GANADOS, cantidad, fecha, detalle,
                 getPuntosDisponibles()));
     }
 
-    /** Reversion: quita puntos acumulados (y por tanto disponibles). */
     public void perderPuntos(int cantidad, LocalDateTime fecha, String detalle) {
         validarDisponibles(cantidad);
         if (cantidad == 0) {
@@ -76,10 +58,6 @@ public class Cliente {
                 getPuntosDisponibles()));
     }
 
-    /**
-     * Gasta los puntos del beneficio y, si dura en el tiempo, lo deja activo.
-     * No cambia los puntos acumulados (ni el rango).
-     */
     public void canjear(Beneficio beneficio, LocalDateTime fecha) {
         validarDisponibles(beneficio.getCostoPuntos());
         puntosCanjeados += beneficio.getCostoPuntos();
@@ -90,7 +68,6 @@ public class Cliente {
         }
     }
 
-    /** Recorre los beneficios canjeados: O(b), b es pequeno. */
     public boolean tieneBeneficio(Beneficio beneficio, LocalDateTime fecha) {
         for (BeneficioActivo activo : beneficios) {
             if (activo.getBeneficio() == beneficio && activo.vigenteEn(fecha)) {
@@ -114,7 +91,6 @@ public class Cliente {
         reversibles.apilar(transaccion);
     }
 
-    /** La proxima que se revertiria. @throws java.util.NoSuchElementException si no hay */
     public Transaccion ultimaReversible() {
         return reversibles.cima();
     }
@@ -131,7 +107,6 @@ public class Cliente {
         return Rango.desdePuntos(puntos);
     }
 
-    /** Saldo total sumando todos sus monederos. O(m), m = cantidad de monederos. */
     public long saldoTotal() {
         long total = 0;
         for (Monedero monedero : monederos) {
@@ -156,7 +131,6 @@ public class Cliente {
         return nombre;
     }
 
-    /** Puntos acumulados: los que definen el rango. */
     public int getPuntos() {
         return puntos;
     }

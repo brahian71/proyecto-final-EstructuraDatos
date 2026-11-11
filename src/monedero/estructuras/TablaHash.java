@@ -4,23 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/**
- * Tabla hash con encadenamiento: un arreglo de cubetas y cada cubeta es una
- * lista enlazada de entradas cuyas claves cayeron en esa posicion.
- *
- *   posicion = (hashCode & 0x7fffffff) % capacidad
- *
- * Cuando el factor de carga (tamanio / capacidad) pasa de 0.75 se duplica la
- * capacidad y se reubican todas las entradas (rehash), asi las cubetas
- * siguen cortas.
- *
- * Costos:
- *   poner / obtener / contiene / eliminar   O(1) promedio, O(n) peor caso
- *                                          (todas las claves en una cubeta)
- *   rehash                                 O(n), pero ocurre cada vez que el
- *                                          tamanio se duplica: O(1) amortizado
- *   recorrer valores                       O(n + capacidad)
- */
 public class TablaHash<K, V> implements Mapa<K, V> {
 
     private static final int CAPACIDAD_INICIAL = 16;
@@ -62,7 +45,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
                 return;
             }
         }
-        // se inserta al inicio de la cubeta: O(1)
         cubetas[i] = new Entrada<>(clave, valor, cubetas[i]);
         tamanio++;
         if ((double) tamanio / cubetas.length > FACTOR_CARGA_MAXIMO) {
@@ -117,7 +99,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         return cubetas.length;
     }
 
-    /** Largo de la cubeta mas llena; sirve para mostrar que las colisiones se mantienen bajas. */
     public int cubetaMasLarga() {
         int maximo = 0;
         for (Entrada<K, V> cabeza : cubetas) {
@@ -140,7 +121,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
                 avanzar();
             }
 
-            /** Deja actual en la siguiente entrada no vacia, o null si no quedan. */
             private void avanzar() {
                 if (actual != null) {
                     actual = actual.siguiente;
@@ -167,8 +147,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         };
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private Entrada<K, V> buscar(K clave) {
         if (clave == null) {
             return null;
@@ -181,7 +159,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         return null;
     }
 
-    /** El & quita el signo: hashCode puede ser negativo y % daria posicion negativa. */
     private static int posicion(Object clave, int capacidad) {
         return (clave.hashCode() & 0x7fffffff) % capacidad;
     }
@@ -203,7 +180,6 @@ public class TablaHash<K, V> implements Mapa<K, V> {
 
     @SuppressWarnings("unchecked")
     private static <K, V> Entrada<K, V>[] crearCubetas(int capacidad) {
-        // Java no permite new Entrada<K, V>[n]; se crea sin tipo y se convierte
         return (Entrada<K, V>[]) new Entrada[capacidad];
     }
 }

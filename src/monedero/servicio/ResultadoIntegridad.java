@@ -3,7 +3,6 @@ package monedero.servicio;
 import monedero.estructuras.Coleccion;
 import monedero.estructuras.ListaEnlazada;
 
-/** Lista de inconsistencias encontradas por el VerificadorIntegridad. */
 public class ResultadoIntegridad {
 
     private final Coleccion<String> errores = new ListaEnlazada<>();

@@ -3,21 +3,6 @@ package monedero.estructuras;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Lista circular simplemente enlazada de capacidad fija: el siguiente del
- * ultimo nodo es el primero. Se usa para las notificaciones de un cliente:
- * se guardan las N mas recientes y, cuando esta llena, la nueva sobrescribe
- * a la mas vieja reutilizando su nodo (no crece sin limite ni crea basura).
- *
- * Solo se guarda la referencia al ULTIMO nodo: el primero es ultimo.siguiente,
- * asi que los dos extremos quedan a un paso.
- *
- * Costos:
- *   agregar (con o sin sobrescritura)  O(1)
- *   primero / ultimo                   O(1)
- *   tamanio / estaLlena                O(1)
- *   recorrido                          O(n)  de la mas vieja a la mas nueva
- */
 public class ListaCircular<T> implements Iterable<T> {
 
     private static class Nodo<T> {
@@ -41,10 +26,6 @@ public class ListaCircular<T> implements Iterable<T> {
         this.capacidad = capacidad;
     }
 
-    /**
-     * Agrega al final. Si esta llena, el nodo mas viejo (ultimo.siguiente)
-     * pasa a ser el ultimo con el valor nuevo: basta con avanzar el puntero.
-     */
     public void agregar(T elemento) {
         if (estaVacia()) {
             ultimo = new Nodo<>(elemento);
@@ -65,7 +46,6 @@ public class ListaCircular<T> implements Iterable<T> {
         tamanio++;
     }
 
-    /** El mas viejo. */
     public T primero() {
         if (estaVacia()) {
             throw new NoSuchElementException("La lista esta vacia");
@@ -73,7 +53,6 @@ public class ListaCircular<T> implements Iterable<T> {
         return ultimo.siguiente.valor;
     }
 
-    /** El mas reciente. */
     public T ultimo() {
         if (estaVacia()) {
             throw new NoSuchElementException("La lista esta vacia");
@@ -97,15 +76,10 @@ public class ListaCircular<T> implements Iterable<T> {
         return tamanio == capacidad;
     }
 
-    /** Cuantos elementos se han perdido por sobrescritura desde que se creo. */
     public int sobrescritos() {
         return sobrescritos;
     }
 
-    /**
-     * Recorre exactamente tamanio nodos empezando por el primero. En una
-     * lista circular no hay null al final: se para contando, no buscando null.
-     */
     @Override
     public Iterator<T> iterator() {
         return new Iterator<>() {

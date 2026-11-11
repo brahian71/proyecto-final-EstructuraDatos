@@ -4,21 +4,12 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Deposito, retiro o transferencia que se ejecuta sola en una fecha y, si
- * es recurrente, se vuelve a programar para la siguiente.
- *
- * Su prioridad en la cola es proximaEjecucion; si dos coinciden, sale
- * primero la que se programo antes (secuencia), asi el orden es estable.
- */
 public class OperacionProgramada {
 
-    /** Orden de la cola de prioridad: fecha mas cercana primero, luego la mas antigua. */
     public static final Comparator<OperacionProgramada> POR_FECHA =
             Comparator.comparing(OperacionProgramada::getProximaEjecucion)
                     .thenComparingLong(OperacionProgramada::getSecuencia);
 
-    /** Ejecuciones sin limite (hasta que se cancele). */
     public static final int SIN_LIMITE = Integer.MAX_VALUE;
 
     private final String id;
@@ -66,17 +57,10 @@ public class OperacionProgramada {
         this.ejecucionesTotales = frecuencia == Frecuencia.UNA_VEZ ? 1 : ejecucionesTotales;
     }
 
-    /**
-     * Fecha de la siguiente ejecucion. No se guarda: se calcula desde inicio
-     * y ejecucionesHechas. Por eso la operacion debe SACARSE de la cola antes
-     * de registrar una ejecucion y volver a meterse despues (si no, la cola
-     * quedaria con una prioridad vieja).
-     */
     public LocalDateTime getProximaEjecucion() {
         return frecuencia.fechaNumero(inicio, ejecucionesHechas);
     }
 
-    /** Cuenta una ejecucion (exitosa o fallida) y deja lista la siguiente. */
     public void registrarEjecucion(boolean exitosa) {
         ejecucionesHechas++;
         if (!exitosa) {

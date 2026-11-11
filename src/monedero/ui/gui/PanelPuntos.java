@@ -17,14 +17,10 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 
-/**
- * Canje de puntos, historial de puntos del cliente y, a la derecha, lo que
- * sale del arbol AVL de clientes: ranking y clientes por rango.
- */
 final class PanelPuntos extends JPanel implements Refrescable {
 
     private final Contexto contexto;
-    private final JLabel disponibles = Contexto.titulo("");
+    private final JLabel disponibles = Estilo.titulo("");
     private final JButton[] botonesCanje = new JButton[Beneficio.values().length];
     private final ModeloTabla historial = new ModeloTabla("Fecha", "Movimiento", "Puntos", "Detalle", "Disponibles");
     private final ModeloTabla ranking = new ModeloTabla("#", "Cliente", "Puntos", "Rango");
@@ -36,16 +32,15 @@ final class PanelPuntos extends JPanel implements Refrescable {
         this.contexto = contexto;
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ---- izquierda: canje e historial
         JPanel izquierda = new JPanel(new BorderLayout(0, 10));
         JPanel canje = new JPanel(new BorderLayout(0, 8));
-        canje.setBorder(Contexto.tarjeta("Canjear puntos disponibles"));
+        Estilo.comoTarjeta(canje, "Canjear puntos disponibles");
         canje.add(disponibles, BorderLayout.NORTH);
         JPanel botones = new JPanel(new GridLayout(Beneficio.values().length, 1, 0, 6));
         for (Beneficio b : Beneficio.values()) {
             String detalle = b == Beneficio.BONO_SALDO
                     ? " (" + Formato.pesos(contexto.sistema().montoBono()) + ")" : "";
-            JButton boton = new JButton("<html><b>" + b.getCostoPuntos() + " pts</b> &nbsp; "
+            JButton boton = Estilo.botonSecundario("<html><b>" + b.getCostoPuntos() + " pts</b> &nbsp; "
                     + b.getDescripcion() + detalle + "</html>");
             boton.setHorizontalAlignment(SwingConstants.LEFT);
             boton.addActionListener(e -> canjear(b));
@@ -57,18 +52,17 @@ final class PanelPuntos extends JPanel implements Refrescable {
         nota.setFont(nota.getFont().deriveFont(Font.ITALIC, 11f));
         canje.add(nota, BorderLayout.SOUTH);
         izquierda.add(canje, BorderLayout.NORTH);
-        izquierda.add(Contexto.conBorde(new JScrollPane(historial.crearTabla()),
+        izquierda.add(Estilo.comoTarjeta(new JScrollPane(historial.crearTabla()),
                 "Historial de puntos (lista enlazada)"), BorderLayout.CENTER);
         add(izquierda);
 
-        // ---- derecha: arbol AVL
         JPanel derecha = new JPanel(new BorderLayout(0, 10));
-        derecha.add(Contexto.conBorde(new JScrollPane(ranking.crearTabla()),
+        derecha.add(Estilo.comoTarjeta(new JScrollPane(ranking.crearTabla()),
                 "Ranking: top 10 (recorrido inorden invertido del AVL)"), BorderLayout.CENTER);
         JPanel abajo = new JPanel(new BorderLayout(0, 4));
         JScrollPane tablaRangos = new JScrollPane(porRango.crearTabla());
-        tablaRangos.setPreferredSize(new java.awt.Dimension(100, 150));
-        abajo.add(Contexto.conBorde(tablaRangos, "Clientes por rango (consulta de rango en el AVL)"), BorderLayout.CENTER);
+        tablaRangos.setPreferredSize(new java.awt.Dimension(100, 172));
+        abajo.add(Estilo.comoTarjeta(tablaRangos, "Clientes por rango (consulta de rango en el AVL)"), BorderLayout.CENTER);
         abajo.add(datosArbol, BorderLayout.SOUTH);
         derecha.add(abajo, BorderLayout.SOUTH);
         add(derecha);
@@ -86,8 +80,8 @@ final class PanelPuntos extends JPanel implements Refrescable {
     public void refrescar() {
         Cliente c = contexto.cliente();
         if (c != null) {
-            disponibles.setText(c.getNombre() + ": " + c.getPuntosDisponibles() + " puntos disponibles  ("
-                    + c.getPuntos() + " acumulados, rango " + c.getRango() + ")");
+            disponibles.setText(c.getPuntosDisponibles() + " puntos disponibles  ·  " + c.getPuntos()
+                    + " acumulados  ·  " + c.getRango());
             for (Beneficio b : Beneficio.values()) {
                 botonesCanje[b.ordinal()].setEnabled(c.getPuntosDisponibles() >= b.getCostoPuntos());
             }

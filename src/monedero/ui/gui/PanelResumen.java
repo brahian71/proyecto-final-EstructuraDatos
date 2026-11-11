@@ -18,11 +18,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 
-/** Datos del cliente actual: puntos, rango, monederos, notificaciones y beneficios activos. */
 final class PanelResumen extends JPanel implements Refrescable {
 
     private final Contexto contexto;
-    private final JLabel nombre = Contexto.titulo("");
+    private final JLabel nombre = Estilo.titulo("");
     private final JLabel rango = new JLabel();
     private final JLabel saldo = new JLabel();
     private final JLabel puntos = new JLabel();
@@ -37,31 +36,39 @@ final class PanelResumen extends JPanel implements Refrescable {
         this.contexto = contexto;
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel cabecera = new JPanel(new BorderLayout(10, 6));
-        cabecera.setBorder(Contexto.tarjeta("Cliente"));
+        JPanel cabecera = new JPanel(new BorderLayout(0, 10));
+        cabecera.setOpaque(false);
         cabecera.add(nombre, BorderLayout.NORTH);
         JPanel datos = new JPanel(new GridLayout(1, 4, 12, 0));
-        for (JLabel l : new JLabel[]{rango, saldo, puntos, disponibles}) {
-            l.setFont(l.getFont().deriveFont(Font.BOLD, 14f));
-            datos.add(l);
-        }
+        datos.setOpaque(false);
+        datos.add(cifra("Saldo total", saldo));
+        datos.add(cifra("Puntos acumulados", puntos));
+        datos.add(cifra("Disponibles para canje", disponibles));
+        datos.add(cifra("Rango", rango));
         cabecera.add(datos, BorderLayout.CENTER);
+        JPanel barra = new JPanel(new BorderLayout());
+        barra.setBackground(Estilo.TARJETA);
+        barra.setBorder(Estilo.tarjetaSinTitulo());
         progreso.setStringPainted(true);
-        cabecera.add(progreso, BorderLayout.SOUTH);
+        progreso.setFont(Estilo.fuente(Font.BOLD, 12));
+        progreso.setPreferredSize(new Dimension(100, 22));
+        barra.add(progreso, BorderLayout.CENTER);
+        cabecera.add(barra, BorderLayout.SOUTH);
         add(cabecera, BorderLayout.NORTH);
 
         JPanel centro = new JPanel(new GridLayout(1, 2, 10, 0));
-        centro.add(Contexto.conBorde(new JScrollPane(monederos.crearTabla()), "Monederos (multimonedero)"));
+        centro.add(Estilo.comoTarjeta(new JScrollPane(monederos.crearTabla()), "Monederos (multimonedero)"));
 
         JPanel avisos = new JPanel(new BorderLayout(0, 6));
-        avisos.setBorder(Contexto.tarjeta("Notificaciones (lista circular, ultimas 10)"));
+        Estilo.comoTarjeta(avisos, "Notificaciones (lista circular, ultimas 10)");
         var tablaAvisos = notificaciones.crearTabla();
-        tablaAvisos.getColumnModel().getColumn(0).setMaxWidth(24);
-        tablaAvisos.getColumnModel().getColumn(1).setPreferredWidth(80);
+        tablaAvisos.getColumnModel().getColumn(0).setMaxWidth(34);
+        tablaAvisos.getColumnModel().getColumn(0).setMinWidth(34);
+        tablaAvisos.getColumnModel().getColumn(1).setPreferredWidth(95);
         tablaAvisos.getColumnModel().getColumn(2).setPreferredWidth(150);
         tablaAvisos.getColumnModel().getColumn(3).setPreferredWidth(420);
         avisos.add(new JScrollPane(tablaAvisos), BorderLayout.CENTER);
-        JButton leidas = new JButton("Marcar como leidas");
+        JButton leidas = Estilo.botonSecundario("Marcar como leidas");
         leidas.addActionListener(e -> {
             Cliente c = contexto.cliente();
             if (c != null) {
@@ -74,7 +81,21 @@ final class PanelResumen extends JPanel implements Refrescable {
 
         JScrollPane panelBeneficios = new JScrollPane(beneficios.crearTabla());
         panelBeneficios.setPreferredSize(new Dimension(100, 120));
-        add(Contexto.conBorde(panelBeneficios, "Beneficios canjeados"), BorderLayout.SOUTH);
+        add(Estilo.comoTarjeta(panelBeneficios, "Beneficios canjeados"), BorderLayout.SOUTH);
+    }
+
+    private static JPanel cifra(String titulo, JLabel valor) {
+        JPanel tarjeta = new JPanel(new BorderLayout(0, 4));
+        tarjeta.setBackground(Estilo.TARJETA);
+        tarjeta.setBorder(Estilo.tarjetaSinTitulo());
+        JLabel etiqueta = new JLabel(titulo);
+        etiqueta.setFont(Estilo.fuente(Font.PLAIN, 12));
+        etiqueta.setForeground(Estilo.TEXTO_SUAVE);
+        valor.setFont(Estilo.fuente(Font.BOLD, 22));
+        valor.setForeground(Estilo.TEXTO);
+        tarjeta.add(etiqueta, BorderLayout.NORTH);
+        tarjeta.add(valor, BorderLayout.CENTER);
+        return tarjeta;
     }
 
     @Override
@@ -85,11 +106,11 @@ final class PanelResumen extends JPanel implements Refrescable {
         }
         Rango r = c.getRango();
         nombre.setText(c.getNombre() + "  (" + c.getId() + ")");
-        rango.setText("Rango: " + r);
+        rango.setText(r.toString());
         rango.setForeground(Formato.colorRango(r));
-        saldo.setText("Saldo total: " + Formato.pesos(c.saldoTotal()));
-        puntos.setText("Puntos acumulados: " + c.getPuntos());
-        disponibles.setText("Disponibles para canje: " + c.getPuntosDisponibles());
+        saldo.setText(Formato.pesos(c.saldoTotal()));
+        puntos.setText(String.valueOf(c.getPuntos()));
+        disponibles.setText(String.valueOf(c.getPuntosDisponibles()));
         actualizarProgreso(c, r);
 
         Coleccion<Object[]> filas = ModeloTabla.nuevasFilas();
@@ -99,7 +120,6 @@ final class PanelResumen extends JPanel implements Refrescable {
         }
         monederos.setFilas(filas);
 
-        // la lista circular va de la mas vieja a la mas nueva; se muestran al reves
         Coleccion<Object[]> avisos = ModeloTabla.nuevasFilas();
         monedero.estructuras.Pila<Object[]> alReves = new monedero.estructuras.PilaEnlazada<>();
         for (Notificacion n : contexto.sistema().getNotificador().buzon(c.getId())) {
