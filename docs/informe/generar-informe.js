@@ -113,7 +113,7 @@ const portada = [
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Monedero Virtual con Sistema de Puntos', bold: true, size: 48, color: AZUL })], spacing: { after: 240 } }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Informe técnico', size: 32 })], spacing: { after: 1600 } }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Brahian Stiven Toro C.', bold: true, size: 26 })], spacing: { after: 120 } }),
-  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Docente: ________________________', size: 24 })], spacing: { after: 120 } }),
+  new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Docente: Robinson Arias Muñoz', size: 24 })], spacing: { after: 120 } }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Noviembre de 2026', size: 24 })], spacing: { after: 600 } }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [
     new TextRun({ text: 'Código fuente: ', size: 20 }),
@@ -371,8 +371,8 @@ const pruebas = [
     ['**Total**', '', '**280**'],
   ]),
   espacio(),
-  p('Además se ejecutó una prueba de estrés aleatoria: 20 escenarios de 3.000 operaciones al azar (depósitos, retiros, transferencias, reversiones, canjes, programadas, cancelaciones, saltos de reloj y reportes), es decir **60.000 operaciones**, verificando la integridad cada 100 pasos. Resultado: 0 fallos de integridad y 0 excepciones inesperadas.'),
-  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) y comprueba 82 flujos, entre ellos inicio de sesión (credenciales malas y correctas), operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes, registro de clientes con usuario y las restricciones de la vista de un cliente.'),
+  p('Además se ejecutó una prueba de estrés aleatoria: 20 escenarios de 3.000 operaciones al azar (depósitos, retiros, transferencias, reversiones, canjes, programadas, cancelaciones, saltos de reloj y reportes), es decir **60.000 operaciones**, verificando la integridad cada 100 pasos (`PruebaEstres`). Resultado: 0 fallos de integridad y 0 excepciones inesperadas.'),
+  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) (`PruebaInterfaz`) y hace 83 comprobaciones, entre ellos inicio de sesión (credenciales malas y correctas), operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes, registro de clientes con usuario y las restricciones de la vista de un cliente.'),
 ];
 
 const trazabilidad = [
@@ -417,7 +417,7 @@ const conclusiones = [
   vineta('Persistencia en archivos para conservar los datos entre ejecuciones.'),
   vineta('Bloqueo temporal de la cuenta tras varios intentos fallidos de inicio de sesión.'),
   h1('Anexo: cómo ejecutar'),
-  p('En IntelliJ IDEA: abrir la carpeta del proyecto, marcar `src` como Sources y `test` como Test Sources, y ejecutar `monedero.Main` (interfaz gráfica), `monedero.Main --consola` (menú de texto) o `monedero.PruebasFase1` a `PruebasFase5` (pruebas). Desde PowerShell:'),
+  p('En IntelliJ IDEA: abrir la carpeta del proyecto, marcar `src` como Sources y `test` como Test Sources, y ejecutar `monedero.Main` (interfaz gráfica), `monedero.Main --consola` (menú de texto) o `monedero.PruebasFase1` a `PruebasFase6` (pruebas). Desde PowerShell:'),
   ...codigo([
     'javac -encoding UTF-8 -d out (Get-ChildItem -Recurse -Filter *.java src, test | ForEach-Object { $_.FullName })',
     'java -cp out monedero.Main',

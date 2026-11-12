@@ -9,6 +9,8 @@ En IntelliJ: abrir la carpeta del proyecto, marcar `src` como Sources y `test`
 como Test Sources, y ejecutar:
 - `monedero.Main`: abre el inicio de sesion y la interfaz grafica (con el argumento `--consola`, el menu de texto).
 - `monedero.PruebasFase1` ... `monedero.PruebasFase6`: pruebas.
+- `monedero.PruebaEstres`: 60.000 operaciones al azar verificando la integridad.
+- `monedero.PruebaInterfaz`: maneja la ventana real y comprueba los flujos de la interfaz.
 - `monedero.CapturasInterfaz`: guarda una imagen de cada pestania en `docs/capturas`.
 
 Por consola (PowerShell):
@@ -23,6 +25,8 @@ java -cp out monedero.PruebasFase3
 java -cp out monedero.PruebasFase4
 java -cp out monedero.PruebasFase5
 java -cp out monedero.PruebasFase6
+java -cp out monedero.PruebaEstres
+java -cp out monedero.PruebaInterfaz
 ```
 
 ## Usuarios de demostracion
@@ -73,6 +77,8 @@ test/monedero/
   PruebasFase4.java
   PruebasFase5.java
   PruebasFase6.java   inicio de sesion y usuarios
+  PruebaEstres.java   60.000 operaciones al azar, integridad cada 100 pasos
+  PruebaInterfaz.java recorre la interfaz real (clics, campos y dialogos)
   modelo/Corruptor    ayuda de pruebas para simular datos corruptos
   CapturasInterfaz    imagenes de la interfaz para revisar y para el informe
 ```
@@ -100,5 +106,6 @@ Entrega estimada: mediados de noviembre de 2026.
 - [docs/mapa-del-proyecto.md](docs/mapa-del-proyecto.md): donde esta cada cosa en el codigo (se genera
   con `python docs/generar-mapa.py` desde `docs/mapa-plantilla.md`).
 - `docs/informe/`: informe tecnico en Word (el `.docx` no se sube al repositorio) y
-  `generar-informe.js`, que lo genera (`npm install docx` y `node generar-informe.js <proyecto> <salida.docx>`).
+  `generar-informe.js`, que lo genera: en esa carpeta `npm install` (usa `package.json`) y
+  `node generar-informe.js ../.. Informe-Tecnico-Monedero-Virtual.docx`.
 - `docs/capturas/`: imagenes de cada pestania de la interfaz.

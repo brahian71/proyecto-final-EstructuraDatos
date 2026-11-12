@@ -1,0 +1,8 @@
+{
+  "name": "informe-monedero",
+  "private": true,
+  "description": "Genera el informe tecnico en Word: npm install y node generar-informe.js ../.. Informe-Tecnico-Monedero-Virtual.docx",
+  "dependencies": {
+    "docx": "^9.5.0"
+  }
+}
