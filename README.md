@@ -7,7 +7,7 @@ Java 21, IntelliJ IDEA, sin dependencias externas.
 
 En IntelliJ: abrir la carpeta del proyecto, marcar `src` como Sources y `test`
 como Test Sources, y ejecutar:
-- `monedero.Main`: abre el inicio de sesion y la interfaz grafica (con el argumento `--consola`, el menu de texto).
+- `monedero.Main`: abre el inicio de sesion y la interfaz grafica (con el argumento `--consola`, un menu de texto que se uso durante el desarrollo para pruebas rapidas).
 - `monedero.PruebasFase1` ... `monedero.PruebasFase6`: pruebas.
 - `monedero.PruebaEstres`: 60.000 operaciones al azar verificando la integridad.
 - `monedero.PruebaInterfaz`: maneja la ventana real y comprueba los flujos de la interfaz.
@@ -101,10 +101,6 @@ Entrega estimada: mediados de noviembre de 2026.
 
 ## Documentos
 
-- [docs/decisiones.md](docs/decisiones.md): decisiones de diseno y preguntas abiertas.
-- [docs/sustentacion.md](docs/sustentacion.md): guion de demostracion y preguntas probables.
-- [docs/mapa-del-proyecto.md](docs/mapa-del-proyecto.md): donde esta cada cosa en el codigo (se genera
-  con `python docs/generar-mapa.py` desde `docs/mapa-plantilla.md`).
 - `docs/informe/`: informe tecnico en Word (el `.docx` no se sube al repositorio) y
   `generar-informe.js`, que lo genera: en esa carpeta `npm install` (usa `package.json`) y
   `node generar-informe.js ../.. Informe-Tecnico-Monedero-Virtual.docx`.

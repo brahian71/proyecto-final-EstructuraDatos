@@ -404,7 +404,6 @@ const trazabilidad = [
   vineta('Reloj simulado para demostrar las programadas sin esperar.'),
   vineta('Monto máximo de $1.000.000.000 por transacción (también evita desbordar los puntos).'),
   vineta('Inicio de sesión con roles; contraseñas con hash SHA-256 y sal, nunca en texto plano.'),
-  nota('La lista completa de decisiones (54) está en `docs/decisiones.md` del repositorio.'),
 ];
 
 const conclusiones = [
@@ -417,7 +416,7 @@ const conclusiones = [
   vineta('Persistencia en archivos para conservar los datos entre ejecuciones.'),
   vineta('Bloqueo temporal de la cuenta tras varios intentos fallidos de inicio de sesión.'),
   h1('Anexo: cómo ejecutar'),
-  p('En IntelliJ IDEA: abrir la carpeta del proyecto, marcar `src` como Sources y `test` como Test Sources, y ejecutar `monedero.Main` (interfaz gráfica), `monedero.Main --consola` (menú de texto) o `monedero.PruebasFase1` a `PruebasFase6` (pruebas). Desde PowerShell:'),
+  p('En IntelliJ IDEA: abrir la carpeta del proyecto, marcar `src` como Sources y `test` como Test Sources, y ejecutar `monedero.Main` (interfaz gráfica), `monedero.Main --consola` (menú de texto usado durante el desarrollo) o `monedero.PruebasFase1` a `PruebasFase6` (pruebas). Desde PowerShell:'),
   ...codigo([
     'javac -encoding UTF-8 -d out (Get-ChildItem -Recurse -Filter *.java src, test | ForEach-Object { $_.FullName })',
     'java -cp out monedero.Main',

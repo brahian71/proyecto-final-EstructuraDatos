@@ -14,3 +14,10 @@ out/
 ~$*
 node_modules/
 package-lock.json
+
+### Material de estudio personal (solo local) ###
+docs/decisiones.md
+docs/sustentacion.md
+docs/mapa-del-proyecto.md
+docs/mapa-plantilla.md
+docs/generar-mapa.py
