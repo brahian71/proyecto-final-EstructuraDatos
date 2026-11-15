@@ -285,7 +285,7 @@ const optimizacion = [
     ['5.000', '11 ms', '16 ms'], ['20.000', '13 ms', '233 ms'],
   ]),
   espacio(),
-  p('Al cuadruplicar la cantidad, la lista ordenada tarda unas 15 veces más, mientras el montículo casi no cambia. El proyecto de referencia del semestre anterior usaba una lista ordenada para esta función.'),
+  p('Al cuadruplicar la cantidad, la lista ordenada tarda unas 15 veces más, mientras el montículo casi no cambia.'),
   h2('5.3 Otras decisiones de eficiencia'),
   vineta('Tabla hash con rehash al 75 %: búsquedas O(1) promedio y cubetas cortas (máximo 8 con 1.000 claves).'),
   vineta('Lista circular para notificaciones: memoria acotada y O(1) al llenarse, sin desplazar elementos.'),
@@ -345,17 +345,17 @@ const puntos = [
 const interfaz = [
   h1('7. Interfaz gráfica'),
   p('Al abrir el programa se pide **usuario y contraseña**. Hay dos roles: el **administrador** ve a todos los clientes, registra clientes con su usuario, avanza el reloj simulado y verifica la integridad; el **cliente** solo ve y opera sus propios monederos (no ve saldos ajenos, el grafo de todos ni las programadas de otros). Las contraseñas no se guardan: se guarda SHA-256(sal + contraseña) con una sal aleatoria por usuario, y los usuarios están en una tabla hash por nombre (O(1)). Si las credenciales fallan, el mensaje no dice si fue el usuario o la contraseña.'),
-  ...captura('0-inicio-de-sesion.png', 'Figura 0. Inicio de sesión.', 300),
+  ...captura('0-inicio-de-sesion.png', 'Figura 1. Inicio de sesión.', 300),
   p('El diseño es claro y moderno: fondo gris suave, tarjetas blancas con bordes redondeados, cifras grandes en el resumen (saldo, puntos y rango), botones de color para las acciones principales y tablas con filas alternadas y montos alineados a la derecha (los negativos en rojo).'),
-  p('La ventana principal tiene una barra superior con el cliente activo, la fecha del reloj simulado, el botón para avanzar días (que ejecuta las programadas), la verificación de integridad y el cierre de sesión. Cada funcionalidad tiene su pestaña. Antes de confirmar una operación se muestra la comisión y los puntos que daría. Las figuras 1 a 7 muestran la vista del administrador.'),
-  ...captura('1-resumen.png', 'Figura 1. Resumen: rango con progreso al siguiente, monederos y notificaciones (lista circular).'),
-  ...captura('2-operaciones.png', 'Figura 2. Operaciones con cotización de comisión y puntos; abajo, la próxima transacción a revertir (pila).'),
-  ...captura('3-historial.png', 'Figura 3. Historial de un monedero (lista enlazada); las revertidas se muestran en gris.'),
-  ...captura('4-puntos-y-canje.png', 'Figura 4. Canje de puntos, historial de puntos y, a la derecha, el ranking y los clientes por rango obtenidos del AVL.'),
-  ...captura('5-programadas.png', 'Figura 5. Transacciones programadas en el orden en que se ejecutarán (montículo).'),
-  ...captura('6-reportes-y-grafos.png', 'Figura 6. Reportes de patrones de gasto y grafo de transferencias dibujado; los ciclos (DFS) y caminos (BFS) se resaltan en rojo.'),
-  ...captura('7-clientes.png', 'Figura 7. Registro de clientes (con usuario y contraseña) y monederos (multimonedero).'),
-  ...captura('8-vista-cliente.png', 'Figura 8. Vista de una clienta (Ana): sin selector de clientes, reloj ni verificación; la última pestaña es "Mis monederos".'),
+  p('La ventana principal tiene una barra superior con el cliente activo, la fecha del reloj simulado, el botón para avanzar días (que ejecuta las programadas), la verificación de integridad y el cierre de sesión. Cada funcionalidad tiene su pestaña. Antes de confirmar una operación se muestra la comisión y los puntos que daría. Las figuras 2 a 8 muestran la vista del administrador.'),
+  ...captura('1-resumen.png', 'Figura 2. Resumen: rango con progreso al siguiente, monederos y notificaciones (lista circular).'),
+  ...captura('2-operaciones.png', 'Figura 3. Operaciones con cotización de comisión y puntos; abajo, la próxima transacción a revertir (pila).'),
+  ...captura('3-historial.png', 'Figura 4. Historial de un monedero (lista enlazada); las revertidas se muestran en gris.'),
+  ...captura('4-puntos-y-canje.png', 'Figura 5. Canje de puntos, historial de puntos y, a la derecha, el ranking y los clientes por rango obtenidos del AVL.'),
+  ...captura('5-programadas.png', 'Figura 6. Transacciones programadas en el orden en que se ejecutarán (montículo).'),
+  ...captura('6-reportes-y-grafos.png', 'Figura 7. Reportes de patrones de gasto y grafo de transferencias dibujado (grosor = dinero). Al generar los reportes 4 y 5, el ciclo (DFS) o el camino (BFS) encontrado se resalta en rojo.'),
+  ...captura('7-clientes.png', 'Figura 8. Registro de clientes (con usuario y contraseña) y monederos (multimonedero).'),
+  ...captura('8-vista-cliente.png', 'Figura 9. Vista de una clienta (Ana): sin selector de clientes, reloj ni verificación; la última pestaña es "Mis monederos".'),
 ];
 
 const pruebas = [
@@ -372,7 +372,7 @@ const pruebas = [
   ]),
   espacio(),
   p('Además se ejecutó una prueba de estrés aleatoria: 20 escenarios de 3.000 operaciones al azar (depósitos, retiros, transferencias, reversiones, canjes, programadas, cancelaciones, saltos de reloj y reportes), es decir **60.000 operaciones**, verificando la integridad cada 100 pasos (`PruebaEstres`). Resultado: 0 fallos de integridad y 0 excepciones inesperadas.'),
-  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) (`PruebaInterfaz`) y hace 83 comprobaciones, entre ellos inicio de sesión (credenciales malas y correctas), operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes, registro de clientes con usuario y las restricciones de la vista de un cliente.'),
+  p('La interfaz se probó también de forma automatizada: un programa maneja la ventana real (escribe en los campos, pulsa los botones y responde los diálogos) (`PruebaInterfaz`) y hace 83 comprobaciones, entre ellas el inicio de sesión (credenciales malas y correctas), operaciones, errores de monto, reversión, canje, cambio de cliente, programadas, reportes, registro de clientes con usuario y las restricciones de la vista de un cliente.'),
 ];
 
 const trazabilidad = [

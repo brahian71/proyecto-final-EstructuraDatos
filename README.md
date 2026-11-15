@@ -97,7 +97,7 @@ Entrega estimada: mediados de noviembre de 2026.
 | 6 | Interfaz grafica (7 pestanias, grafo dibujado) | Swing | Hecha (1 nov) |
 | 7 | Ajustes a pesos colombianos (escala de puntos, bono, umbral), datos de demostracion | - | Hecha (3 nov) |
 | 7b | Inicio de sesion con roles (administrador y cliente) | Tabla hash | Hecha (9 nov) |
-| 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | 11 - 14 nov |
+| 8 | Informe tecnico, tabla de requisitos, ensayo de sustentacion | - | Hecha (15 nov) |
 
 ## Documentos
 
