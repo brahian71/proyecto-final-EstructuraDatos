@@ -48,10 +48,11 @@ public class AnalisisGastos {
         return grafo;
     }
 
+    // las secuencias nunca unen gastos de clientes distintos
     public GrafoDirigido<Categoria> grafoCategorias(String clienteId) {
         GrafoDirigido<Categoria> grafo = new GrafoDirigido<>();
         Mapa<String, Categoria> ultimaDeCadaCliente = new TablaHash<>();
-        for (Transaccion t : sistema.getTransacciones()) {
+        for (Transaccion t : sistema.getTransacciones()) { // ya estan en orden cronologico
             String quien = clienteQueGasta(t);
             if (quien == null || (clienteId != null && !clienteId.equals(quien))) {
                 continue;
@@ -69,7 +70,7 @@ public class AnalisisGastos {
 
     public Coleccion<FilaReporte> gastoPorCategoria(String clienteId) {
         sistema.buscarCliente(clienteId);
-        Mapa<Categoria, long[]> totales = new TablaHash<>();
+        Mapa<Categoria, long[]> totales = new TablaHash<>(); // [dinero, veces]
         for (Transaccion t : sistema.getTransacciones()) {
             if (clienteId.equals(clienteQueGasta(t))) {
                 long[] acumulado = totales.obtener(t.getCategoria());
@@ -142,6 +143,7 @@ public class AnalisisGastos {
                     .thenComparing(Comparator.comparingLong(FilaReporte::valor).reversed())
                     .thenComparing(FilaReporte::etiqueta);
 
+    // top n usando el monticulo propio
     private static Coleccion<FilaReporte> mayores(Coleccion<FilaReporte> filas, int n, Comparator<FilaReporte> orden) {
         MonticuloBinario<FilaReporte> monticulo = new MonticuloBinario<>(orden);
         for (FilaReporte f : filas) {

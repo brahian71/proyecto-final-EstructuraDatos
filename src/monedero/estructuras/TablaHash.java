@@ -35,6 +35,7 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         cubetas = crearCubetas(capacidadInicial);
     }
 
+    // si el factor de carga pasa de 0.75 se duplica la capacidad
     @Override
     public void poner(K clave, V valor) {
         Objects.requireNonNull(clave, "La clave no puede ser nula");
@@ -45,6 +46,7 @@ public class TablaHash<K, V> implements Mapa<K, V> {
                 return;
             }
         }
+        // se inserta al inicio de la cubeta: O(1)
         cubetas[i] = new Entrada<>(clave, valor, cubetas[i]);
         tamanio++;
         if ((double) tamanio / cubetas.length > FACTOR_CARGA_MAXIMO) {
@@ -159,10 +161,12 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         return null;
     }
 
+    // el & quita el signo: hashCode puede ser negativo
     private static int posicion(Object clave, int capacidad) {
         return (clave.hashCode() & 0x7fffffff) % capacidad;
     }
 
+    // rehash: la posicion depende de la capacidad, por eso se reubica todo
     private void redimensionar(int nuevaCapacidad) {
         Entrada<K, V>[] viejas = cubetas;
         cubetas = crearCubetas(nuevaCapacidad);
@@ -180,6 +184,7 @@ public class TablaHash<K, V> implements Mapa<K, V> {
 
     @SuppressWarnings("unchecked")
     private static <K, V> Entrada<K, V>[] crearCubetas(int capacidad) {
+        // Java no permite new Entrada<K, V>[n]; se crea sin tipo y se convierte
         return (Entrada<K, V>[]) new Entrada[capacidad];
     }
 }

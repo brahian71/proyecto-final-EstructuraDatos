@@ -19,6 +19,7 @@ public final class DatosIniciales {
     }
 
     public static void cargar(SistemaMonedero sistema) {
+        // usuarios de demostracion (ver README): admin / admin123 y cada cliente con su nombre + 123
         sistema.getUsuarios().registrar(USUARIO_ADMIN, CONTRASENA_ADMIN, Rol.ADMINISTRADOR, null);
         Cliente ana = sistema.registrarClienteConUsuario("Ana Gomez", "ana", "ana123");
         Cliente bruno = sistema.registrarClienteConUsuario("Bruno Diaz", "bruno", "bruno123");
@@ -51,6 +52,7 @@ public final class DatosIniciales {
         sistema.retirar(carlaPrincipal, 75_000, Categoria.SALUD, "Farmacia");
         sistema.transferir(brunoGastos.getId(), anaPrincipal, 85_000, Categoria.ALIMENTACION, "Almuerzo compartido");
 
+        // programadas: se ejecutan al avanzar el reloj desde el menu
         var programador = sistema.getProgramador();
         var hoy = sistema.getReloj().ahora();
         programador.programar(TipoTransaccion.TRANSFERENCIA, anaPrincipal, anaAhorros.getId(), 300_000,

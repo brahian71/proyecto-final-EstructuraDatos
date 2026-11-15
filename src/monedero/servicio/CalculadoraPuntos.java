@@ -2,6 +2,7 @@ package monedero.servicio;
 
 import monedero.modelo.TipoTransaccion;
 
+// unidad = $100: con $1, un deposito normal daria miles de puntos
 public final class CalculadoraPuntos {
 
     public static final long UNIDADES_POR_BLOQUE = 100;
@@ -23,6 +24,7 @@ public final class CalculadoraPuntos {
             return 0;
         }
         long bloques = monto / pesosPorBloque();
+        // toIntExact lanza excepcion en vez de desbordar en silencio con montos absurdos
         return Math.toIntExact(bloques * tipo.getPuntosPorCada100());
     }
 

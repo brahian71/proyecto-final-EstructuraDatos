@@ -6,6 +6,7 @@ import monedero.modelo.TipoTransaccion;
 
 import java.time.LocalDateTime;
 
+// descuento en enteros: comision * (100 - %) / 100
 public class ComisionEstandar implements PoliticaComision {
 
     public static final long PORCENTAJE_TRANSFERENCIA = 1;

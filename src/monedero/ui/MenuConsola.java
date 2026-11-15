@@ -39,6 +39,7 @@ public class MenuConsola {
             try {
                 ejecutar(opcion);
             } catch (RuntimeException e) {
+                // reglas de negocio (saldo insuficiente, id inexistente, monto invalido)
                 System.out.println("  ERROR: " + e.getMessage());
             }
         } while (opcion != 0);

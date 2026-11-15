@@ -25,6 +25,7 @@ public class SistemaMonedero {
 
     public static final long UNIDADES_SALDO_BAJO = 500;
 
+    // ademas evita que los puntos (int) se desborden
     public static final long MONTO_MAXIMO = 1_000_000_000L;
 
     private final Mapa<String, Cliente> clientes = new TablaHash<>();
@@ -64,6 +65,7 @@ public class SistemaMonedero {
     }
 
     public Cliente registrarCliente(String nombre) {
+        // el consecutivo solo avanza si el cliente es valido (un nombre vacio no gasta un id)
         Cliente cliente = new Cliente(String.format("C%03d", consecutivoCliente + 1), nombre);
         consecutivoCliente++;
         clientes.poner(cliente.getId(), cliente);
@@ -72,6 +74,7 @@ public class SistemaMonedero {
         return cliente;
     }
 
+    // valida el usuario primero para no dejar un cliente sin usuario
     public Cliente registrarClienteConUsuario(String nombre, String nombreUsuario, String contrasena) {
         usuarios.validarNuevo(nombreUsuario, contrasena);
         Cliente cliente = registrarCliente(nombre);
@@ -160,6 +163,7 @@ public class SistemaMonedero {
         return t;
     }
 
+    // se rechaza si el destino ya gasto la plata o si los puntos ya se canjearon
     public Transaccion revertirUltima(String clienteId) {
         Cliente cliente = buscarCliente(clienteId);
         if (!cliente.tieneReversibles()) {
@@ -327,6 +331,7 @@ public class SistemaMonedero {
                 reloj.ahora(), descripcion, base + bono, bono);
     }
 
+    // usa el rango que tenia ANTES de esta transaccion
     private int bonoPorRango(TipoTransaccion tipo, int base, String origenId) {
         if (!tipo.recibeBonoPorRango() || origenId == null) {
             return 0;

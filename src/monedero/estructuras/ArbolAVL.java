@@ -4,8 +4,7 @@ public class ArbolAVL<K extends Comparable<K>, V> extends ArbolBST<K, V> {
 
     private int rotaciones;
 
-    // balance = altura(izq) - altura(der). Si llega a 2 o -2 se rota:
-    // LL -> rotarDerecha, LR -> izquierda + derecha, RR -> rotarIzquierda, RL -> derecha + izquierda
+    // balance = altura(izq) - altura(der); si pasa de 1 o -1 se rota (LL, LR, RR, RL)
     @Override
     protected Nodo<K, V> ajustar(Nodo<K, V> nodo) {
         actualizarAltura(nodo);

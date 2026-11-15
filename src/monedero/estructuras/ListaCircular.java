@@ -26,6 +26,7 @@ public class ListaCircular<T> implements Iterable<T> {
         this.capacidad = capacidad;
     }
 
+    // llena: el mas viejo (ultimo.siguiente) se reutiliza como el nuevo ultimo
     public void agregar(T elemento) {
         if (estaVacia()) {
             ultimo = new Nodo<>(elemento);
@@ -80,6 +81,7 @@ public class ListaCircular<T> implements Iterable<T> {
         return sobrescritos;
     }
 
+    // no hay null al final: se para contando tamanio nodos
     @Override
     public Iterator<T> iterator() {
         return new Iterator<>() {

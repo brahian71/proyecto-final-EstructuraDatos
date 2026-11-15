@@ -43,7 +43,7 @@ public class Cliente {
         if (cantidad == 0) {
             return;
         }
-        puntos = Math.addExact(puntos, cantidad);
+        puntos = Math.addExact(puntos, cantidad); // lanza excepcion en vez de desbordar
         historialPuntos.agregar(new MovimientoPuntos(MovimientoPuntos.Tipo.GANADOS, cantidad, fecha, detalle,
                 getPuntosDisponibles()));
     }
@@ -103,6 +103,7 @@ public class Cliente {
         return !reversibles.estaVacia();
     }
 
+    // con los acumulados, no los disponibles: canjear no baja de rango
     public Rango getRango() {
         return Rango.desdePuntos(puntos);
     }

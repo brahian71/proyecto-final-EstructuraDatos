@@ -40,10 +40,12 @@ public class ProgramadorTransacciones {
         if (inicio.isBefore(sistema.getReloj().ahora())) {
             throw new OperacionInvalidaException("La primera ejecucion no puede ser en el pasado: " + inicio);
         }
+        // el duenio es quien paga (origen) o, en un deposito, quien recibe
         Monedero duenio = sistema.buscarMonedero(tipo == TipoTransaccion.DEPOSITO ? destinoId : origenId);
         if (tipo == TipoTransaccion.TRANSFERENCIA) {
             sistema.buscarMonedero(destinoId);
             if (origenId.equals(destinoId)) {
+                // si no, todas sus ejecuciones fallarian
                 throw new OperacionInvalidaException("No se puede programar una transferencia al mismo monedero");
             }
         }
@@ -57,6 +59,7 @@ public class ProgramadorTransacciones {
         return op;
     }
 
+    // la tabla hash la ubica por id; luego se quita del monticulo
     public void cancelar(String id) {
         OperacionProgramada op = buscar(id);
         if (op.terminada()) {
@@ -66,17 +69,19 @@ public class ProgramadorTransacciones {
         op.cancelar();
     }
 
+    // mientras la raiz este vencida: sacarla, mover el reloj a su fecha y ejecutarla
     public int avanzarHasta(LocalDateTime destino) {
         int procesadas = 0;
         while (!cola.estaVacia() && !cola.verPrimero().getProximaEjecucion().isAfter(destino)) {
             OperacionProgramada op = cola.extraer();
+            // en un salto largo, los recordatorios salen en su momento (24 h antes), no al final
             sistema.getReloj().avanzarHasta(op.getProximaEjecucion().minusHours(HORAS_RECORDATORIO));
             enviarRecordatorios();
             sistema.getReloj().avanzarHasta(op.getProximaEjecucion());
             boolean exitosa = ejecutar(op);
             op.registrarEjecucion(exitosa);
             if (!op.terminada()) {
-                cola.insertar(op);
+                cola.insertar(op); // vuelve con su nueva fecha
             }
             procesadas++;
         }
@@ -127,6 +132,8 @@ public class ProgramadorTransacciones {
             }
             return true;
         } catch (RuntimeException e) {
+            // cualquier falla cuenta como ejecucion fallida: la operacion ya salio de la cola y,
+            // si la excepcion escapara, no volveria a entrar y se perderia
             sistema.getNotificador().notificar(op.getClienteId(), TipoNotificacion.FALLO_PROGRAMADA,
                     "No se pudo ejecutar " + op.getId() + " (" + op.getTipo() + " " + Moneda.pesos(op.getMonto()) + "): "
                             + e.getMessage(), sistema.getReloj().ahora());

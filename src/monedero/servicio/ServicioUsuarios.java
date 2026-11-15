@@ -14,6 +14,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 
+// se guarda SHA-256(sal + contrasena) con una sal aleatoria por usuario, nunca la contrasena
 public class ServicioUsuarios {
 
     public static final int MINIMO_USUARIO = 3;
@@ -49,7 +50,7 @@ public class ServicioUsuarios {
     public Usuario iniciarSesion(String nombreUsuario, String contrasena) {
         Usuario usuario = usuarios.obtener(normalizar(nombreUsuario));
         if (usuario == null || contrasena == null) {
-            hash("", String.valueOf(contrasena));
+            hash("", String.valueOf(contrasena)); // mismo trabajo que con un usuario real: no se nota si existe
             throw new AutenticacionException();
         }
         byte[] esperado = usuario.getHashContrasena().getBytes(StandardCharsets.UTF_8);
@@ -87,7 +88,7 @@ public class ServicioUsuarios {
             byte[] resumen = sha.digest((sal + contrasena).getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(resumen);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 no disponible", e);
+            throw new IllegalStateException("SHA-256 no disponible", e); // todo Java lo trae
         }
     }
 }

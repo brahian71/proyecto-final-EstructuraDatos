@@ -6,6 +6,7 @@ import java.util.Objects;
 
 public class OperacionProgramada {
 
+    // fecha mas cercana primero; si empatan, la que se programo antes
     public static final Comparator<OperacionProgramada> POR_FECHA =
             Comparator.comparing(OperacionProgramada::getProximaEjecucion)
                     .thenComparingLong(OperacionProgramada::getSecuencia);
@@ -57,6 +58,7 @@ public class OperacionProgramada {
         this.ejecucionesTotales = frecuencia == Frecuencia.UNA_VEZ ? 1 : ejecucionesTotales;
     }
 
+    // no se guarda, se calcula: hay que sacarla de la cola antes de registrar una ejecucion
     public LocalDateTime getProximaEjecucion() {
         return frecuencia.fechaNumero(inicio, ejecucionesHechas);
     }

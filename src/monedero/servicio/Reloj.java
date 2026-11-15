@@ -3,6 +3,7 @@ package monedero.servicio;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+// reloj simulado: todo pide la hora aqui para poder avanzar dias
 public class Reloj {
 
     private LocalDateTime actual;

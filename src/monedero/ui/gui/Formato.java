@@ -33,6 +33,7 @@ final class Formato {
         return fecha == null ? "" : fecha.format(FECHA_HORA);
     }
 
+    // acepta 50000, 50.000 o $50.000; rechaza decimales
     static long leerMonto(String texto) {
         String limpio = texto == null ? "" : texto.replace("$", "").replace(" ", "").trim();
         if (limpio.isEmpty()) {

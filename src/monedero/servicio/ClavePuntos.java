@@ -1,5 +1,6 @@
 package monedero.servicio;
 
+// el id desempata; desde/hasta son claves centinela para buscar un rango de puntos
 record ClavePuntos(int puntos, String clienteId) implements Comparable<ClavePuntos> {
 
     private static final String ID_MAXIMO = "\uffff";

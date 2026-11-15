@@ -30,6 +30,7 @@ public class ColaEnlazada<T> implements Cola<T> {
         tamanio++;
     }
 
+    // si la cola queda vacia, fin tambien vuelve a null
     @Override
     public T desencolar() {
         T valor = frente();

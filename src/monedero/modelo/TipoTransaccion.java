@@ -1,5 +1,6 @@
 package monedero.modelo;
 
+// MOVIMIENTO_INTERNO no da puntos: si no, se moveria plata entre monederos propios solo por puntos
 public enum TipoTransaccion {
 
     DEPOSITO(1),
@@ -26,6 +27,7 @@ public enum TipoTransaccion {
         return this != RETIRO;
     }
 
+    // el bono premia usar el dinero (retiro, transferencia), no guardarlo
     public boolean recibeBonoPorRango() {
         return this == RETIRO || this == TRANSFERENCIA;
     }

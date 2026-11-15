@@ -2,6 +2,7 @@ package monedero.modelo;
 
 import java.time.LocalDateTime;
 
+// la fecha n se calcula desde la inicial, no sumando a la anterior: una mensual del 31 no se corre
 public enum Frecuencia {
 
     UNA_VEZ,

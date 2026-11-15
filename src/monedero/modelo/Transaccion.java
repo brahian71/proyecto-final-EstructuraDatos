@@ -3,6 +3,8 @@ package monedero.modelo;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+// dinero en long: con double los redondeos harian fallar la integridad
+// los puntos se guardan aqui para que al revertir se quiten exactamente los mismos
 public class Transaccion {
 
     private final String id;
@@ -67,6 +69,7 @@ public class Transaccion {
         this.bonoPuntos = bonoPuntos;
     }
 
+    // origen: -(monto + comision); destino: +monto
     public long efectoSobre(String monederoId) {
         if (monederoId == null) {
             return 0;

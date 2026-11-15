@@ -11,6 +11,7 @@ out/
 
 ### Documentos fuera del repo (enunciado, borradores del informe) ###
 *.docx
+docs/informe/*.pdf
 ~$*
 node_modules/
 package-lock.json

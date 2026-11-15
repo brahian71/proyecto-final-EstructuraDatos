@@ -30,6 +30,7 @@ public class Monedero {
         this.tipo = Objects.requireNonNull(tipo, "El tipo no puede ser nulo");
     }
 
+    // unico lugar que cambia el saldo: asi saldo == suma del historial
     public void aplicar(Transaccion transaccion) {
         if (!transaccion.involucra(id)) {
             throw new IllegalArgumentException("La transaccion " + transaccion.getId() + " no involucra al monedero " + id);
@@ -59,6 +60,7 @@ public class Monedero {
         saldo = nuevoSaldo;
     }
 
+    // si este minimo es menor que el monto, esa plata ya se gasto y no se puede revertir
     public long saldoMinimoDesde(Transaccion transaccion) {
         long corriente = 0;
         long minimo = Long.MAX_VALUE;
@@ -84,6 +86,7 @@ public class Monedero {
         return historial.tamanio();
     }
 
+    // solo para pruebas: simula un dato corrupto para ver que la integridad lo detecta
     void registrarSinAfectarSaldo(Transaccion transaccion) {
         historial.agregar(transaccion);
     }

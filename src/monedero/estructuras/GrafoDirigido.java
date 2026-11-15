@@ -2,6 +2,7 @@ package monedero.estructuras;
 
 import java.util.Objects;
 
+// lista de adyacencia: cada vertice guarda sus aristas en una tabla hash (destino -> arista)
 public class GrafoDirigido<V> {
 
     public static class Arista<V> {
@@ -133,6 +134,7 @@ public class GrafoDirigido<V> {
         return cantidadAristas;
     }
 
+    // BFS: se guarda desde que vertice se llego a cada uno y al final se reconstruye hacia atras
     public Coleccion<V> caminoMasCorto(V origen, V destino) {
         Coleccion<V> camino = new ListaEnlazada<>();
         if (!vertices.contiene(origen) || !vertices.contiene(destino)) {
@@ -159,6 +161,7 @@ public class GrafoDirigido<V> {
         if (!visitado.contiene(destino)) {
             return camino;
         }
+        // reconstruir de destino a origen con una pila para dejarlo en orden
         Pila<V> alReves = new PilaEnlazada<>();
         for (V v = destino; v != null; v = llegoDesde.obtener(v)) {
             alReves.apilar(v);
@@ -189,7 +192,7 @@ public class GrafoDirigido<V> {
         }
     }
 
-    // DFS con tres estados (sin visitar, EN_PILA, TERMINADO): una arista hacia un vertice EN_PILA cierra un ciclo
+    // DFS con 3 estados (sin visitar, EN_PILA, TERMINADO): llegar a uno EN_PILA cierra un ciclo
     public Coleccion<Coleccion<V>> ciclos() {
         Coleccion<Coleccion<V>> ciclos = new ListaEnlazada<>();
         Mapa<V, Integer> estado = new TablaHash<>();
@@ -216,7 +219,7 @@ public class GrafoDirigido<V> {
                 ciclos.agregar(tramoDesde(pila, a.destino));
             }
         }
-        pila.eliminar(actual);
+        pila.eliminar(actual); // es el ultimo de la pila; eliminar lo busca desde el inicio: O(profundidad)
         estado.poner(actual, TERMINADO);
     }
 

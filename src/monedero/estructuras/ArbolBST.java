@@ -26,6 +26,7 @@ public class ArbolBST<K extends Comparable<K>, V> {
         raiz = insertar(raiz, clave, valor);
     }
 
+    // al regresar de la recursion llama a ajustar: en el AVL ahi se rota
     private Nodo<K, V> insertar(Nodo<K, V> nodo, K clave, V valor) {
         if (nodo == null) {
             tamanio++;
@@ -73,6 +74,7 @@ public class ArbolBST<K extends Comparable<K>, V> {
         return tamanio < antes;
     }
 
+    // 3 casos: hoja, un hijo (sube el hijo), dos hijos (se reemplaza por el sucesor: minimo del subarbol derecho)
     private Nodo<K, V> eliminar(Nodo<K, V> nodo, K clave) {
         if (nodo == null) {
             return null;
@@ -129,6 +131,7 @@ public class ArbolBST<K extends Comparable<K>, V> {
         enOrden(nodo.derecho, resultado);
     }
 
+    // inorden invertido (der, raiz, izq) que se corta al juntar n
     public Coleccion<V> mayores(int n) {
         Coleccion<V> resultado = new ListaEnlazada<>();
         mayores(raiz, n, resultado);
@@ -146,6 +149,7 @@ public class ArbolBST<K extends Comparable<K>, V> {
         mayores(nodo.izquierdo, n, resultado);
     }
 
+    // poda: no baja por las ramas que quedan fuera de [desde, hasta]
     public Coleccion<V> rango(K desde, K hasta) {
         Coleccion<V> resultado = new ListaEnlazada<>();
         rango(raiz, desde, hasta, resultado);
@@ -206,6 +210,7 @@ public class ArbolBST<K extends Comparable<K>, V> {
         return calculada;
     }
 
+    // aqui solo actualiza la altura; ArbolAVL lo sobrescribe para rotar
     protected Nodo<K, V> ajustar(Nodo<K, V> nodo) {
         actualizarAltura(nodo);
         return nodo;

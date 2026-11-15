@@ -16,6 +16,7 @@ public class RegistroPuntos {
         arbol.insertar(clave(cliente), cliente);
     }
 
+    // los puntos son parte de la clave: sacar, sumar y reinsertar
     public void ganar(Cliente cliente, int cantidad, LocalDateTime fecha, String detalle) {
         if (cantidad == 0) {
             return;
@@ -24,6 +25,7 @@ public class RegistroPuntos {
         try {
             cliente.ganarPuntos(cantidad, fecha, detalle);
         } finally {
+            // pase lo que pase, el cliente vuelve al arbol con sus puntos actuales
             arbol.insertar(clave(cliente), cliente);
         }
     }
@@ -36,10 +38,12 @@ public class RegistroPuntos {
         try {
             cliente.perderPuntos(cantidad, fecha, detalle);
         } finally {
+            // si perderPuntos falla, el cliente vuelve al arbol con sus puntos de siempre
             arbol.insertar(clave(cliente), cliente);
         }
     }
 
+    // no cambia los acumulados: el nodo no se mueve
     public void canjear(Cliente cliente, Beneficio beneficio, LocalDateTime fecha) {
         cliente.canjear(beneficio, fecha);
     }

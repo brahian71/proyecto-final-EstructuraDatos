@@ -47,7 +47,8 @@ public enum Rango {
         return bonoPuntos;
     }
 
+    // division entera: 36 base en Plata = 3 extra
     public int bonoSobre(int puntosBase) {
-        return Math.toIntExact((long) puntosBase * bonoPuntos / 100);
+        return Math.toIntExact((long) puntosBase * bonoPuntos / 100); // en long para no desbordar
     }
 }

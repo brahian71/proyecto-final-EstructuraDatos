@@ -20,6 +20,7 @@ final class ModeloTabla extends AbstractTableModel {
         return new ListaEnlazada<>();
     }
 
+    // copia a un arreglo para que getValueAt sea O(1)
     void setFilas(Coleccion<Object[]> datos) {
         filas = new Object[datos.tamanio()][];
         int i = 0;

@@ -7,6 +7,7 @@ import monedero.modelo.MovimientoPuntos;
 import monedero.modelo.Rango;
 import monedero.modelo.Transaccion;
 
+// divide y venceras: profundidad O(log n); recorrer la lista recursivamente seria O(n)
 public class VerificadorIntegridad {
 
     private final SistemaMonedero sistema;
@@ -92,6 +93,8 @@ public class VerificadorIntegridad {
         if (t.getDestinoId() != null && !sistema.existeMonedero(t.getDestinoId())) {
             resultado.agregarError(t.getId() + ": el monedero destino " + t.getDestinoId() + " no existe");
         }
+        // puntos = base de la regla + bono del rango; el bono solo en retiros y transferencias
+        // y nunca mayor que el del rango mas alto
         int base = sistema.getCalculadoraPuntos().calcular(t.getTipo(), t.getMonto());
         int bonoMaximo = t.getTipo().recibeBonoPorRango() ? Rango.PLATINO.bonoSobre(base) : 0;
         if (t.getPuntos() - t.getBonoPuntos() != base) {
@@ -112,13 +115,14 @@ public class VerificadorIntegridad {
         if (izquierda >= 0) {
             return izquierda;
         }
+        // la frontera entre las dos mitades tambien hay que revisarla
         if (arr[medio + 1].getFecha().isBefore(arr[medio].getFecha())) {
             return medio + 1;
         }
         return primeraFueraDeOrden(arr, medio + 1, fin);
     }
 
-    // Combinar dos mitades: suma = izq.suma + der.suma; minimo = min(izq.minimo, izq.suma + der.minimo)
+    // combinar: suma = izq + der; minimo = min(izq.minimo, izq.suma + der.minimo)
     private record Tramo(long suma, long minimoParcial) {
     }
 
@@ -177,6 +181,7 @@ public class VerificadorIntegridad {
         return sumarMovimientos(arr, ini, medio) + sumarMovimientos(arr, medio + 1, fin);
     }
 
+    // una transferencia esta en dos historiales: solo cuenta en el de quien gana los puntos
     private int sumarPuntos(Transaccion[] arr, String monederoId, int ini, int fin) {
         if (ini > fin) {
             return 0;

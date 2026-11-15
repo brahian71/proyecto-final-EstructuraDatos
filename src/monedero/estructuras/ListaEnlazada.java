@@ -19,6 +19,7 @@ public class ListaEnlazada<T> implements Coleccion<T> {
     private Nodo<T> cola;
     private int tamanio;
 
+    // O(1) gracias al puntero cola
     @Override
     public void agregar(T elemento) {
         Nodo<T> nuevo = new Nodo<>(elemento);
@@ -91,6 +92,7 @@ public class ListaEnlazada<T> implements Coleccion<T> {
     }
 
     private class IteradorLista implements Iterator<T> {
+
         private Nodo<T> actual = cabeza;
 
         @Override

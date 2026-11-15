@@ -6,6 +6,7 @@ public enum Beneficio {
     RETIROS_SIN_CARGO(500, 30, "Retiros sin comision por 30 dias"),
     BONO_SALDO(1000, 0, "Bono de saldo de " + Beneficio.UNIDADES_BONO + " unidades en el monedero principal");
 
+    // 50 unidades = $5.000 con la escala de pesos
     public static final long UNIDADES_BONO = 50;
 
     private final int costoPuntos;

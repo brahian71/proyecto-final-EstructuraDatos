@@ -101,6 +101,7 @@ public class MonticuloBinario<T> implements ColaPrioridad<T> {
         if (i < tamanio) {
             datos[i] = datos[tamanio];
             datos[tamanio] = null;
+            // el que llego puede ser menor que su nuevo padre o mayor que sus hijos
             if (i > 0 && menor(i, (i - 1) / 2)) {
                 subir(i);
             } else {
@@ -122,6 +123,7 @@ public class MonticuloBinario<T> implements ColaPrioridad<T> {
         }
     }
 
+    // hijos de i = 2i + 1 y 2i + 2; se cambia con el MENOR para que siga siendo <= que el otro
     private void hundir(int i) {
         while (true) {
             int izq = 2 * i + 1;
